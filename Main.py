@@ -1,20 +1,18 @@
 from Board import *
 from Player import *
+import time
+import pygame
 import gym
 #import tensorflow as tf
 
-p = Bot("Green", "RANDOM")
-b = Bot("Red", "MINIMAX")
-
-players = [p, b]
-
+players = [Bot("Green", "MINIMAX", depth=3), Bot("Red")]
 
 completed_games = []
 
 
 def simulation(players, n = 10, _print=False):
     for i in range(n):
-        print(i)
+        print("Game: ", i, end = " ")
         board = Board(players)
         while not board.game_over:
             player = board.get_player_turn()
@@ -23,6 +21,8 @@ def simulation(players, n = 10, _print=False):
             if _print:
                  board.print()
         completed_games.append((board))
+        board.print()
+        print(board.winner, "(", board.winner.algorithm, ")", " Won!")
 
 
 def manual(players, sequence):
@@ -33,24 +33,27 @@ def manual(players, sequence):
         print("Move: {0}\t{1}".format(board.moves[i], bools[i]))
     completed_games.append(board)
 
-#seq = [0,1,0,1,0,1,0,1,0]
-#seq= [6, 6, 1, 6, 5, 6, 4, 5, 6,6,4,3]# 4, 5, 5, 5, 1, 5, 0, 4, 1, 4, 2, 4, 3]
-#manual(players, seq)
 
+t0 = time.clock()
+n = 30
+#manual(players, [6, 1, 6, 6, 3, 5, 3, 3, 1, 4, 4, 4, 6, 3, 6, 2, 4, 5])
+simulation(players, n, False)
+t1 = time.clock()
 
-simulation(players, 10, True)
+winners = {}
 
-
-
-count = 0
 for board in completed_games:
     board.print()
+    print(board.last_move)
     print(board.moves)
     winner = board.check_win()
+    if winner in winners:
+        winners[winner] += 1
+    else:
+        winners[winner] = 1
     print(winner)
-    if winner == b:
-        count += 1
 
-print(b, " won ", count, end= " ")
 print("out of {0} games".format(len(completed_games)))
+print(winners)
+print("Avg time per game: ", (t1 - t0) / n, " seconds per game")
 
