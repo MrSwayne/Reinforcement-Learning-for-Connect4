@@ -31,8 +31,8 @@ class Board():
         self.moves = []
         return np.zeros([self.rows, self.cols])  ##.astype(str)
 
-    def get_state(self):
-        return self.board
+    def get_state(self, step = True):
+        return self.board, self.last_move, self.check_win(step=step)
 
     def placeSequence(self, list):
         bools = []
@@ -99,6 +99,9 @@ class Board():
       #  print(self.players[(self.turn % self.num_players)])
         return (self.players[(self.turn % self.num_players)]);
 
+
+    def get_players(self):
+        return self.players
 
     def get_state(self):
         return self.board

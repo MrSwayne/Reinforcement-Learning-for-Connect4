@@ -1,13 +1,28 @@
 from abc import ABC, abstractmethod
 import random
 from Board import *
+import MCTS as MC
 from copy import deepcopy
 
 class Player():
     num_players = 0
+
+    colours = {
+        "RED":((255,0,0)),
+        "GREEN":(0,255,0),
+        "BLUE":(0,0,255),
+        "BLACK":(0,0,0),
+        "WHITE":(255,255,255)
+    }
+
     def __init__(self, colour):
         Player.num_players += 1
-        self.colour = colour
+
+        if colour.upper() in self.colours:
+            self.colour = colour.upper()
+        else:
+            self.colour = "BLACK"
+
         self.number = Player.num_players
 
     @abstractmethod
@@ -22,6 +37,10 @@ class Player():
 
     def __int__(self):
         return self.number
+
+    def get_rgb(self):
+        return self.colours[self.colour]
+
 
 class Human(Player):
 
@@ -38,11 +57,12 @@ class Human(Player):
 class Bot(Player):
 
 
-    algorithms = ["MINIMAX", "MCTS", "RANDOM"]
-    def __init__(self, colour, algorithm = "RANDOM", depth=3):
+    algorithms = ["MINIMAX", "MINIMAX_VANILLA", "MCTS", "RANDOM"]
+    def __init__(self, colour, algorithm = "RANDOM", simulations = 10,depth=3):
         Player.__init__(self, colour)
         self.best_choice = -1
         self.depth = depth
+        self.n = 10
         if algorithm.upper() in Bot.algorithms:
             self.algorithm = algorithm.upper()
         else:
@@ -52,17 +72,16 @@ class Bot(Player):
 
 
     def minimaxHeuristic(self, board):
-        state = board.get_state();
-
+        return 0
         heuristic_score = 0
 
         modifier = 1
         for r in range(board.rows):
             for c in range(board.cols):
-                if state[r,c] == 0:
+                if board.get(r,c) == 0:
                     continue
 
-                cell_to_check = state[r, c]
+                cell_to_check = board.get(r, c)
 
                 if cell_to_check == int(self):
                     modifier = 1
@@ -101,17 +120,19 @@ class Bot(Player):
 
 
 
-    def minimax(self, board, current_depth = 0):
+    def minimax(self, board, current_depth = 0, heuristic= True):
 
         winner = board.check_win(step=True)
         if winner == self:
-            return 100000000000 - current_depth * 10
+            return 1
         elif winner in board.players:
-            return -10000000
+            return -1
         elif int(winner) == 0:
             return 0
 
         if current_depth == self.depth:
+            if not heuristic:
+                return 1
             return self.minimaxHeuristic(board)
 
         max_score = 0
@@ -139,16 +160,31 @@ class Bot(Player):
         return max_score
 
     def mcts(self,  board):
-        pass
+
+        root = MC.Node(self, board, e=1)
+        for action in board.get_actions():
+            node = MC.Node(self, board, e=1)
+            root.add_child(node)
+
+
+        self.best_choice = root.select_child().prev_action
+
+
 
     def get_choice(self, board):
+        self.best_choice = -1
         if self.algorithm == "RANDOM":
-            return random.choice(board.get_actions())
+            self.best_choice = random.choice(board.get_actions())
         elif self.algorithm == "MINIMAX":
             self.minimax(board)
-            return self.best_choice
+        elif self.algorithm == "MINIMAX_VANILLA":
+            self.minimax(board, heuristic=False)
         elif self.algorithm == "MCTS":
             self.mcts(board)
-            return self.best_choice
+
+
+
+        if self.best_choice == -1:
+            return random.choice(board.get_actions())
         else:
-            return None
+            return self.best_choice
