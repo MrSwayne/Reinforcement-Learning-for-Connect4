@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import bitstring as bt
+import time
 import copy
 class Board():
 
@@ -20,11 +21,18 @@ class Board():
         self.win_span = win_span
         self.init_state()
 
+    #todo
+    def undo(self):
+        last_col = self.moves[len(self.moves) - 1]
+        last_row = self.high[last_col]
+        index = self.get_index(col=last_col, row=last_row)
+        return index
+
+
+
     def init_state(self):
         self.turn = 0
-        self.winner = -1
         self.game_over = False
-        self.last_move = {"R":-1, "C":-1}
         self.moves = []
 
         self.high = []
@@ -72,9 +80,6 @@ class Board():
 
     def print(self):
 
-        for board in self.boards:
-            print (board.bin)
-
         for r in range(self.rows - 1, -1, -1 ):
             for c in range(0, self.cols):
 
@@ -82,14 +87,13 @@ class Board():
                 to_be_printed = 0
                 for j in range(len(self.boards)):
                     board = self.boards[j]
-
                     if board[self.get_index(r,c)] == True:
                         to_be_printed = j + 1
                 print(to_be_printed, end = " ")
             print()
+        print()
 
     def print_player(self, player):
-        board = None
         for i in range(len(self.players)):
             if self.players[i] == player:
                 board = self.boards[i]
@@ -104,21 +108,19 @@ class Board():
                         print(to_be_printed, end=" ")
                     print()
 
-    def __deepcopy__(self, memodict={}):
 
+    def __deepcopy__(self, memodict={}):
         newBoard = Board(self.players, self.rows, self.cols, self.win_span)
 
         for i in range(len(self.boards)):
             newBoard.boards[i] = copy.deepcopy(self.boards[i])
         newBoard.turn = self.turn
         newBoard.game_over = self.game_over
-        newBoard.moves = copy.copy(self.moves)
-        newBoard.last_move = copy.deepcopy(self.last_move)
+        newBoard.moves = copy.deepcopy(self.moves)
         return newBoard
 
     def get_index(self, col, row):
-
-        if row >= 0 and row < self.rows:
+        if row >= 0 and row <= self.rows:
             if col >= 0 and col <= self.cols:
 
                 index = (row)  * self.cols + col
@@ -136,28 +138,29 @@ class Board():
         return index
 
     def __set(self, row, col, player, value = True):
-        if row >= 0 and row < self.rows:
-            if col >= 0 and col < self.cols:
-                for i in range(len(self.players)):
-                    if self.players[i] == player:
+        for i in range(len(self.players)):
+            if self.players[i] == player:
 
-                        self.boards[i][self.get_index(row, col)] = value
-                        return True
+                self.boards[i][self.get_index(row, col)] = value
+                return True
         return False
                # self.board[self.get_index(row, col)] = "0b1"
 
+    def get_last_move(self):
+        if len(self.moves) > 0:
+            return self.moves[len(self.moves) - 1]
+        return None
+
     def place(self, col):
-        if 0 <= col < self.cols:
+        self.check_win()
 
-            self.check_win()
-
-            if not self.game_over:
-
-                if self.high[col] < self.cols:
-                    if self.__set(row = self.high[col], col = col, player = self.get_player_turn()):
-                        self.high[col] += 1
-                        self.turn += 1
-                        return True
+        if not self.game_over:
+            if self.high[col] < self.rows:
+                if self.__set(row = self.high[col], col = col, player = self.get_player_turn()):
+                    self.high[col] += 1
+                    self.turn += 1
+                    self.moves.append(col)
+                    return True
         return False
 
     def get_player_turn(self, prev=False):
@@ -186,18 +189,12 @@ class Board():
 
         return available
 
-    def get_last_move(self):
-        return self.last_move["R"], self.last_move["C"]
-
-    def get_neighbours(self, r, c):
-        pass
-
+    ##Bitboard black magic
     def check_win(self):
+        ##Vertical |, horizontal -, diagonal \, diagonal /
+        directions = [1, 7, 6, 8]
         for i in range(len(self.players)):
             board = self.boards[i]
-                    ##Vertical, horizontal, diagonal \, diagonal /
-            directions =  [1,7,6,8]
-
             for direction in directions:
                 m = board
                 for in_a_row in range(self.win_span):

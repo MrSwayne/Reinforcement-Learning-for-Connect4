@@ -19,17 +19,16 @@ class Board():
         self.num_players = len(players)
         self.win_span = win_span
 
-        self.col_index={}
+        self.high = []
         for c in range(cols):
-            self.col_index[c] = 0
+            self.high.append(0)
 
     def init_state(self):
         self.turn = 0
         self.winner = -1
         self.game_over = False
-        self.last_move = {"R":-1, "C":-1}
         self.moves = []
-        return np.zeros([self.rows, self.cols])  ##.astype(str)
+        return np.zeros([self.rows, self.cols])
 
     def get_state(self, step = True):
         return self.board, self.last_move, self.check_win(step=step)
@@ -68,16 +67,23 @@ class Board():
         newBoard.turn = self.turn
         newBoard.game_over = self.game_over
         newBoard.moves = copy.copy(self.moves)
-        newBoard.last_move = copy.copy(self.last_move)
         return newBoard
 
-
-    def get(self, row, col):
+    def get_c(self, row, col):
         if row >= 0 and row < self.rows:
             if col >= 0 and col < self.cols:
                 return self.board[row, col]
 
         return -1
+
+    def get(self, row, col):
+        if row >= 0 and row < self.rows:
+            if col >= 0 and col < self.cols:
+                for p in self.players:
+                    if int(p) == self.board[row,col]:
+                        return p
+        return -1
+
 
 
     def place(self, col):
@@ -90,15 +96,11 @@ class Board():
                     self.board[r,col] = int(self.get_player_turn());
                     self.turn += 1
                     self.moves.append(col)
-                    self.last_move["R"] = r
-                    self.last_move["C"] = col
                     return True
         return False
 
     def get_player_turn(self):
-      #  print(self.players[(self.turn % self.num_players)])
         return (self.players[(self.turn % self.num_players)]);
-
 
     def get_players(self):
         return self.players
@@ -108,7 +110,6 @@ class Board():
 
     def get_actions(self):
         available = []
-
         for c in range(self.cols):
             if self.board[0, c] == 0:
                 available.append(c)
@@ -118,39 +119,53 @@ class Board():
 
         return available
 
+
+    ##Get a one hot vector of the last move
+    def get_last_action(self):
+        move = self.get_last_move()
+        vector = []
+
+        for i in range(self.cols):
+            if i == move:
+                vector.append(1)
+            else:
+                vector.append(0)
+        return vector
+
     def get_last_move(self):
-        return self.last_move["R"], self.last_move["C"]
+        if len(self.moves) == 0:
+            return -1
+        return self.moves[len(self.moves) - 1]
 
     def get_neighbours(self, r, c):
         map = {"LEFT":[], "RIGHT":[], "UP":[], "DOWN":[], "UP_LEFT":[], "DOWN_RIGHT":[], "UP_RIGHT":[], "DOWN_LEFT":[]}
         if c >= 0 and c < self.cols and r >= 0 and r < self.rows:
 
-            cell_to_check = self.get(r, c)
+            cell_to_check = self.get_c(r, c)
 
             if cell_to_check > 0:
-                #   print("checking", c, " ", r, " [", cell_to_check, "]", end = "\t")
                 ##get left
 
                 for col in range(c - 1, c - self.win_span , -1):
-                    neighbour_cell = self.get(r, col)
+                    neighbour_cell = self.get_c(r, col)
                     map["LEFT"].append(neighbour_cell)
                 ##get right
 
                 for col in range(c + 1, c + self.win_span, 1):
-                    neighbour_cell = self.get(r, col)
+                    neighbour_cell = self.get_c(r, col)
 
                     if neighbour_cell >= 0:
                         map["RIGHT"].append(neighbour_cell)
 
                 ##get up
                 for row in range(r - 1, r - self.win_span, -1):
-                    neighbour_cell = self.get(row, c)
+                    neighbour_cell = self.get_c(row, c)
                     if neighbour_cell >= 0:
                         map["UP"].append(neighbour_cell)
 
                 ##get down
                 for row in range(r + 1, r + self.win_span, 1):
-                    neighbour_cell = self.get(row, c)
+                    neighbour_cell = self.get_c(row, c)
                     if neighbour_cell >= 0:
                         map["DOWN"].append(neighbour_cell)
 
@@ -159,7 +174,7 @@ class Board():
                 for i in range(self.win_span - 1):
                     row = r - (i + 1)
                     col = c - (i + 1)
-                    neighbour_cell = self.get(row, col)
+                    neighbour_cell = self.get_c(row, col)
                     if neighbour_cell >= 0:
                         map["UP_LEFT"].append(neighbour_cell)
 
@@ -167,7 +182,7 @@ class Board():
                 for i in range(self.win_span - 1):
                     row = r + (i + 1)
                     col = c + (i + 1)
-                    neighbour_cell = self.get(row, col)
+                    neighbour_cell = self.get_c(row, col)
                     if neighbour_cell >= 0:
                         map["DOWN_RIGHT"].append(neighbour_cell)
 
@@ -176,7 +191,7 @@ class Board():
                 temp_row = r + 1
                 temp_col = c - 1
                 for i in range(self.win_span):
-                    neighbour_cell = self.get(temp_row, temp_col)
+                    neighbour_cell = self.get_c(temp_row, temp_col)
 
                     if neighbour_cell >= 0:
                         map["DOWN_LEFT"].append(neighbour_cell)
@@ -188,7 +203,7 @@ class Board():
                 temp_col = c + 1
 
                 for i in range(self.win_span - 1):
-                    neighbour_cell = self.get(temp_row, temp_col)
+                    neighbour_cell = self.get_c(temp_row, temp_col)
 
                     if neighbour_cell >= 0:
                         map["UP_RIGHT"].append(neighbour_cell)
@@ -198,15 +213,21 @@ class Board():
 
 
     def check_win(self, step = False):
+
         cells_to_check = []
 
         if step:
-            R,C = self.get_last_move()
+            C = self.get_last_move()
+            R = self.cols
             cells_to_check.append((self.get(R,C), R, C))
         else:
             for r in range(self.rows):
                 for c in range(self.cols):
                     cells_to_check.append((self.get(r,c), r, c))
+
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cells_to_check.append((self.get_c(r,c), r, c))
 
         for cell_to_check_tuple in cells_to_check:
             cell_to_check = cell_to_check_tuple[0]

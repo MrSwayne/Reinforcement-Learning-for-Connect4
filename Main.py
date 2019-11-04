@@ -2,22 +2,26 @@
 from Player import *
 import time
 import Game as Game
-from Board import *
+from datetime import timedelta
+import Algorithm as algo
 
-players = [Bot("Green", "MCTS",simulations=10, depth=4), Bot("Red", "MINIMAX", simulations=10,depth= 4)]
 
+players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2))), Bot("Red", algo.MCTS(n=50))]
 
-n = 5
-
+n = 10
 
 t0 = time.clock()
-completed_games = Game.simulation(players, n, False)
+completed_games = Game.simulation(players, n, _print=False)
 t1 = time.clock()
 
 Game.print_results(completed_games)
-print(completed_games[0].board)
-print(completed_games[0].get_actions())
+most_moves = 0
+longest_game = None
+for game in completed_games:
 
-#games = Game.manual(players, [2,2,2,3,6,5,2,2, 2])
+    if len(game.moves) > most_moves:
+        most_moves = len(game.moves)
+        longest_game = game
 
 print((t1 - t0) / n, " per game")
+Game.draw(completed_games)

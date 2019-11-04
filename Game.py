@@ -1,37 +1,42 @@
 import pygame
-from BitBoard import *
+from Board import *
 from Player import *
 import time
-import pygame
-import gym
-
-
-
-
-
 
 
 def simulation(players, n = 10, _print=False):
     completed_games = []
     for i in range(n):
-        print("Game: ", i, end = " ")
+        print("Game: ", i)
         board = Board(players)
+        prev_turn = -1
         while not board.game_over:
             player = board.get_player_turn()
             turn = player.get_choice(board)
+
             board.place(turn)
+
+            t0 = time.clock()
+            winner = board.check_win()
+            t1 = time.clock()
+            print("->",t1-t0)
             if _print:
                  board.print()
         completed_games.append((board))
-        print(board.winner, "(", board.winner.algorithm, ")", " Won!")
+
+        if isinstance(winner, Bot):
+            print(winner, "(", winner.algorithm, ")", " Won!")
+        else:
+            print(winner, " (Human) Won!")
     return completed_games
 
 
 def manual(players, sequence):
+    print("WTF")
     completed_games = []
     board = Board(players)
     bools = board.placeSequence(sequence)
-
+    board.print()
     for i in range(len(board.moves)):
         print("Move: {0}\t{1}".format(board.moves[i], bools[i]))
     completed_games.append(board)
@@ -39,7 +44,7 @@ def manual(players, sequence):
     return completed_games
 
 
-def draw(board, width = 1280, height = 720):
+def draw(boards, width = 1280, height = 720):
     pygame.init()
     screen = pygame.display.set_mode((width, height))
     done = False
@@ -47,9 +52,10 @@ def draw(board, width = 1280, height = 720):
 
     player_colour_map = {0:(255,255,255)}
 
-    players = board.get_players()
+    players = boards[0].get_players()
     for player in players:
-        player_colour_map[int(player)] = player.get_rgb()
+        player_colour_map[player] = player.get_rgb()
+
 
     while not done:
         for event in pygame.event.get():
@@ -57,26 +63,41 @@ def draw(board, width = 1280, height = 720):
                 pygame.quit()
                 done = True
             if event.type == pygame.MOUSEBUTTONDOWN:
+                break
                 print(pygame.mouse.get_pos())
 
-        x_offset = 30
-        y_offset = 30
-        for r in range(board.rows):
-            for c in range(board.cols):
-                cell = board.get(r, c)
-                colour = player_colour_map[cell]
+        board_offset_x = 0
+        board_offset_y = 0
 
-                print(colour)
-                pygame.draw.rect(screen, colour, pygame.Rect(x_offset, y_offset, 30, 30))
-                x_offset += 31
-            x_offset = 30
-            y_offset += 31
+        count = 1
+        for board in boards:
 
 
+            x_offset = 30 + board_offset_x
+            y_offset = 30 + board_offset_y
 
+            for r in range(board.rows):
+                for c in range(board.cols):
+#            for r in range(board.rows - 1, -1, -1):
+#                for c in range(0, board.cols):
+                    cell = board.get(r, c)
 
+                    try:
+                        colour = player_colour_map[cell]
+                    except:
+                        colour = player_colour_map[0]
 
+                    pygame.draw.rect(screen, colour, pygame.Rect(x_offset, y_offset, 30, 30))
+                    x_offset += 31
+                x_offset = 30 + board_offset_x
+                y_offset += 31
+            board_offset_y = y_offset + 2
 
+            if count % 3 == 0:
+                board_offset_x += 260
+                board_offset_y = 0
+
+            count += 1
 
         pygame.display.flip()
 
@@ -85,9 +106,6 @@ def print_results(completed_games):
     winners = {}
     for board in completed_games:
         board.print()
-
-        print(board.last_move)
-        print(board.moves)
 
         winner = board.check_win()
         if winner in winners:
