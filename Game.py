@@ -23,7 +23,7 @@ def simulation(players, n = 10, _print=False):
             if _print:
                  board.print()
         completed_games.append((board))
-
+        players[0].algorithm.save_data()
         if isinstance(winner, Bot):
             print(winner, "(", winner.algorithm, ")", " Won!")
         else:

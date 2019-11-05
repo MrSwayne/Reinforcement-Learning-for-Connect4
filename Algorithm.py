@@ -2,6 +2,7 @@ from abc import abstractmethod
 from copy import deepcopy
 import random
 import math
+import csv
 
 import time
 import random
@@ -22,13 +23,39 @@ class Algorithm():
 
 class MCTS(Algorithm):
 
-    def __init__(self, duration = None, depth = None, n = None, e = 1.0):
+    def __init__(self, train=False, duration = None, depth = None, n = None, e = 0.5, g = 0.5, a = 0.9):
         super().__init__()
         self.e = e
         self.duration = duration
         self.depth = depth
         self.n = n
+        self.a = a
         self.end = None
+        self.g = g
+        self.value_function = {}
+
+        if train:
+            self.load_data()
+
+    def load_data(self):
+        self.value_function = {}
+        with open('state_values.csv', 'r+' ) as csvfile:
+            reader = csv.reader(csvfile, delimiter=';')
+
+            headers = True
+            for row in reader:
+                if headers:
+                    headers = False
+                    continue
+                self.value_function[row[0]] = float(row[1])
+
+    def save_data(self):
+        if self.value_function:
+            with open('state_values.csv', 'w+', newline='') as csvfile:
+                writer = csv.writer(csvfile, delimiter=';')
+                writer.writerow(["state", "value"])
+                for state, value in self.value_function.items():
+                    writer.writerow([state, value])
 
     def should_continue(self):
         if self.duration:
@@ -47,9 +74,12 @@ class MCTS(Algorithm):
         self.end = None
         self.game_tree = Tree(player=player, state=state)
         self.root = self.game_tree.root
-        #start = datetime.now()
-        #end = datetime.now() + self.duration
 
+        if self.root.get_state() not in self.value_function:
+            print("Adding unique state")
+            self.value_function[self.root.get_state()] = 0
+
+        node = None
         while self.should_continue():
             node = self.select_node()
             if not node.state.game_over:
@@ -59,16 +89,44 @@ class MCTS(Algorithm):
 
             self.backpropagate(node, reward)
 
+        if node.get_state() in self.value_function:
+            self.update_value(self.root.get_state(), node.get_state(), node.score)
+        else:
+            self.value_function[node.get_state()] = node.score
+
+        return node.state.get_last_move()
         max_score = float("-inf")
         best_child = None
-        for child in self.root.children:
-            if child.visit_count >= max_score:
-                max_score = child.visit_count
-                best_child = child
 
-        print(self.root.visit_count)
+        max_table = float('-inf')
+        best_child = self.get_best_child(self.root)
+        for child in self.root.children:
+
+            child_state = child.get_state()
+            if child_state in self.value_function:
+                if self.value_function[child_state] > max_score:
+                    max_score = self.value_function[child_state]
+                    best_child = child
+            else:
+                if child.visit_count >= max_score:
+                    max_score = child.visit_count
+                    best_child = child
+
+
+        if best_child.get_state() in self.value_function:
+            self.update_value(self.root.get_state(), best_child.get_state(), best_child.visit_count)
+        else:
+            self.value_function[best_child.get_state()] = best_child.visit_count
+
         self.root = best_child
+
+
+
         return best_child.state.get_last_move()
+
+
+    def update_value(self, state, next_state, score):
+        self.value_function[state] = self.value_function[state] + self.a * (score +  (self.g * self.value_function[next_state]) - self.value_function[state] )
 
     def simulation(self, node):
         state = deepcopy(node.state)
@@ -96,7 +154,13 @@ class MCTS(Algorithm):
 
     def expand(self, node):
         children = node.get_child_states()
+
+
         for child in children:
+            if node.get_state() in self.value_function:
+                node.visit_count += 1
+                node.score = self.value_function[node.get_state()]
+
             node.children.append(child)
 
     def UCB(self, node):
@@ -128,7 +192,6 @@ class MCTS(Algorithm):
             if child_score > max_score:
                 max_score = child_score
                 best_child = child
-
         return best_child
 
     def select_node(self):
@@ -150,6 +213,9 @@ class Node:
         self.state = state
         self.player = player
         self.prev_action = prev_action
+
+    def get_state(self):
+        return self.state.get_state(self.player)
 
     def get_child_states(self):
         states = []

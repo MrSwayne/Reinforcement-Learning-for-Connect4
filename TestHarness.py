@@ -11,3 +11,4 @@ board = Board(players)
 board.place(5)
 print(board.get_state())
 print(board.get_last_action())
+

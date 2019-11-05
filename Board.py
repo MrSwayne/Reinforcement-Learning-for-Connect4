@@ -30,8 +30,17 @@ class Board():
         self.moves = []
         return np.zeros([self.rows, self.cols])
 
-    def get_state(self, step = True):
-        return self.board, self.last_move, self.check_win(step=step)
+    def get_state(self, player):
+        string = ""
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.get(r,c) == player:
+                    string += "1"
+                elif self.get(r,c) in self.players:
+                    string += "2"
+                else:
+                    string += "0"
+        return string#, self.last_move, self.check_win(step=step)
 
     def placeSequence(self, list):
         bools = []
@@ -105,8 +114,6 @@ class Board():
     def get_players(self):
         return self.players
 
-    def get_state(self):
-        return self.board
 
     def get_actions(self):
         available = []
