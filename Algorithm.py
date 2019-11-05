@@ -23,7 +23,7 @@ class Algorithm():
 
 class MCTS(Algorithm):
 
-    def __init__(self, train=False, duration = None, depth = None, n = None, e = 0.5, g = 0.5, a = 0.9):
+    def __init__(self, train=False, duration = None, depth = None, n = None, e = 0.5, g = 0.5, a = 0.8):
         super().__init__()
         self.e = e
         self.duration = duration
@@ -32,13 +32,13 @@ class MCTS(Algorithm):
         self.a = a
         self.end = None
         self.g = g
-        self.value_function = {}
+        self.table = {}
 
         if train:
             self.load_data()
 
     def load_data(self):
-        self.value_function = {}
+        self.table = {}
         with open('state_values.csv', 'r+' ) as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
 
@@ -47,14 +47,14 @@ class MCTS(Algorithm):
                 if headers:
                     headers = False
                     continue
-                self.value_function[row[0]] = float(row[1])
+                self.table[row[0]] = float(row[1])
 
     def save_data(self):
-        if self.value_function:
+        if self.table:
             with open('state_values.csv', 'w+', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=';')
                 writer.writerow(["state", "value"])
-                for state, value in self.value_function.items():
+                for state, value in self.table.items():
                     writer.writerow([state, value])
 
     def should_continue(self):
@@ -75,9 +75,9 @@ class MCTS(Algorithm):
         self.game_tree = Tree(player=player, state=state)
         self.root = self.game_tree.root
 
-        if self.root.get_state() not in self.value_function:
-            print("Adding unique state")
-            self.value_function[self.root.get_state()] = 0
+
+        if self.root.get_state() not in self.table:
+            self.table[self.root.get_state()] = 0
 
         node = None
         while self.should_continue():
@@ -89,44 +89,18 @@ class MCTS(Algorithm):
 
             self.backpropagate(node, reward)
 
-        if node.get_state() in self.value_function:
-            self.update_value(self.root.get_state(), node.get_state(), node.score)
+        node = self.get_best_child(self.root)
+        if node.get_state() in self.table:
+            self.update_value(self.root.get_state(), node.get_state(), node.score / node.visit_count)
         else:
-            self.value_function[node.get_state()] = node.score
+            self.table[node.get_state()] = node.score / node.visit_count
 
         return node.state.get_last_move()
-        max_score = float("-inf")
-        best_child = None
 
-        max_table = float('-inf')
-        best_child = self.get_best_child(self.root)
-        for child in self.root.children:
-
-            child_state = child.get_state()
-            if child_state in self.value_function:
-                if self.value_function[child_state] > max_score:
-                    max_score = self.value_function[child_state]
-                    best_child = child
-            else:
-                if child.visit_count >= max_score:
-                    max_score = child.visit_count
-                    best_child = child
-
-
-        if best_child.get_state() in self.value_function:
-            self.update_value(self.root.get_state(), best_child.get_state(), best_child.visit_count)
-        else:
-            self.value_function[best_child.get_state()] = best_child.visit_count
-
-        self.root = best_child
-
-
-
-        return best_child.state.get_last_move()
 
 
     def update_value(self, state, next_state, score):
-        self.value_function[state] = self.value_function[state] + self.a * (score +  (self.g * self.value_function[next_state]) - self.value_function[state] )
+        self.table[state] = self.table[state] + self.a * (score +  (self.g * self.table[next_state]) - self.table[state] )
 
     def simulation(self, node):
         state = deepcopy(node.state)
@@ -157,10 +131,9 @@ class MCTS(Algorithm):
 
 
         for child in children:
-            if node.get_state() in self.value_function:
+            if node.get_state() in self.table:
+                node.score = self.table[node.get_state()]
                 node.visit_count += 1
-                node.score = self.value_function[node.get_state()]
-
             node.children.append(child)
 
     def UCB(self, node):
@@ -173,7 +146,6 @@ class MCTS(Algorithm):
 
         return (cs / cvc + ( self.e * math.sqrt(math.log(pvc) / cvc)))
 
-
     def rollout_policy(self, state):
         while not state.game_over:
             actions = state.get_actions()
@@ -185,7 +157,6 @@ class MCTS(Algorithm):
         max_score = float('-inf')
         best_child = None
         for child in node.children:
-            cvc = child.visit_count
 
             child_score = self.UCB(child)
 

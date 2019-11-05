@@ -1,6 +1,7 @@
 import pygame
 from Board import *
 from Player import *
+import Algorithm as algo
 import time
 
 
@@ -16,14 +17,12 @@ def simulation(players, n = 10, _print=False):
 
             board.place(turn)
 
-            t0 = time.clock()
             winner = board.check_win()
-            t1 = time.clock()
-            print("->",t1-t0)
             if _print:
                  board.print()
         completed_games.append((board))
-        players[0].algorithm.save_data()
+        if isinstance(winner.algorithm, algo.MCTS):
+            winner.algorithm.save_data()
         if isinstance(winner, Bot):
             print(winner, "(", winner.algorithm, ")", " Won!")
         else:

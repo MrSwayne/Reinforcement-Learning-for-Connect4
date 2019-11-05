@@ -6,12 +6,12 @@ from datetime import timedelta
 import Algorithm as algo
 
 
-players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), train=True)), Bot("Red", algo.MCTS(duration=timedelta(seconds=2), train=False))]
+players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), train=True)), Bot("Red", algo.MCTS(n=50, train=True))]
 
-n = 20
+n = 50
 
 t0 = time.clock()
-completed_games = Game.simulation(players, n, _print=False)
+completed_games = Game.simulation(players, n, _print=True)
 t1 = time.clock()
 
 Game.print_results(completed_games)
