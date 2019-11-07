@@ -3,6 +3,7 @@ from copy import deepcopy
 import random
 import math
 import csv
+import os
 
 import time
 import random
@@ -23,6 +24,7 @@ class Algorithm():
 
 class MCTS(Algorithm):
 
+    path = 'state_values3.csv'
     def __init__(self, train=False, duration = None, depth = None, n = None, e = 0.5, g = 0.5, a = 0.8):
         super().__init__()
         self.e = e
@@ -39,7 +41,10 @@ class MCTS(Algorithm):
 
     def load_data(self):
         self.table = {}
-        with open('state_values.csv', 'r+' ) as csvfile:
+        if not os.path.isfile(MCTS.path):
+            f = open(MCTS.path, "w+")
+
+        with open(MCTS.path, 'r' ) as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
 
             headers = True
@@ -51,7 +56,9 @@ class MCTS(Algorithm):
 
     def save_data(self):
         if self.table:
-            with open('state_values.csv', 'w+', newline='') as csvfile:
+            if not os.path.isfile(MCTS.path):
+                f = open(MCTS.path, "r+")
+            with open(MCTS.path, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=';')
                 writer.writerow(["state", "value"])
                 for state, value in self.table.items():

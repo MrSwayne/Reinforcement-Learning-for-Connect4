@@ -4,7 +4,7 @@ import time
 import Game as Game
 from datetime import timedelta
 import Algorithm as algo
-from Board import Board
+from ConnectBoard import Board
 
 players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2))), Bot("Red", algo.MCTS(n=50))]
 board = Board(players)

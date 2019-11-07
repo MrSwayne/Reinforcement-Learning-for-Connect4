@@ -1,15 +1,18 @@
 import pygame
-from Board import *
+from ConnectBoard import *
+from TicBoard import *
 from Player import *
 import Algorithm as algo
 import time
 
+def create_board(players):
+    return ConnectBoard(players)
 
 def simulation(players, n = 10, _print=False):
     completed_games = []
     for i in range(n):
         print("Game: ", i)
-        board = Board(players)
+        board = create_board(players)
         prev_turn = -1
         while not board.game_over:
             player = board.get_player_turn()
@@ -21,19 +24,24 @@ def simulation(players, n = 10, _print=False):
             if _print:
                  board.print()
         completed_games.append((board))
-        if isinstance(winner.algorithm, algo.MCTS):
-            winner.algorithm.save_data()
-        if isinstance(winner, Bot):
-            print(winner, "(", winner.algorithm, ")", " Won!")
+
+        if isinstance(winner, Player):
+            if isinstance(winner.algorithm, algo.MCTS):
+                winner.algorithm.save_data()
+            if isinstance(winner, Bot):
+                print(winner, "(", winner.algorithm, ")", " Won!")
+            else:
+                print(winner, " (Human) Won!")
         else:
-            print(winner, " (Human) Won!")
+            print("DRAW")
+
     return completed_games
 
 
 def manual(players, sequence):
     print("WTF")
     completed_games = []
-    board = Board(players)
+    board = create_board(players)
     bools = board.placeSequence(sequence)
     board.print()
     for i in range(len(board.moves)):

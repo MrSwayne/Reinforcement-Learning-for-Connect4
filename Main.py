@@ -6,9 +6,9 @@ from datetime import timedelta
 import Algorithm as algo
 
 
-players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), train=True)), Bot("Red", algo.MCTS(n=50, train=True))]
-
-n = 50
+players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), train=True)), Bot("Red", algo.Minimax(max_depth=4))]
+#players = [Bot("blue", algo.Random()), Bot("Red", algo.Random())]
+n = 5
 
 t0 = time.clock()
 completed_games = Game.simulation(players, n, _print=True)
