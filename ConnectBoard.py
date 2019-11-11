@@ -174,9 +174,7 @@ class ConnectBoard(Board):
 
 
     def check_win(self, step = False):
-
         cells_to_check = []
-
         if step:
             C = self.get_last_move()
             R = self.cols

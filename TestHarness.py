@@ -1,14 +1,5 @@
-#import tensorflow as tf
+from BitBoard import BitBoard
 from Player import *
-import time
-import Game as Game
-from datetime import timedelta
 import Algorithm as algo
-from ConnectBoard import Board
-
-players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2))), Bot("Red", algo.MCTS(n=50))]
-board = Board(players)
-board.place(5)
-print(board.get_state())
-print(board.get_last_action())
-
+players =[Bot("Red", algo.MCTS()), Bot("Green", algo.Random())]
+b = BitBoard(players)

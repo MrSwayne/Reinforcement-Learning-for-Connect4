@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import bitstring as bt
+import sys
 import time
 import copy
-class Board():
+class BitBoard():
 
     # rows
     #     #@params
@@ -15,160 +15,136 @@ class Board():
     def __init__(self, players = [], rows=6, cols=7, win_span = 4):
         self.rows = rows
         self.cols = cols
-
         self.players = players
-        self.num_players = len(players)
         self.win_span = win_span
-        self.init_state()
+        self.turn = 0
+        self.game_over = False
+        self.moves = []
+
+        self.high = []
+        for i in range(self.cols):
+            self.high.append(self.rows - 1)
+
+        self.boards = {}
+        for p in self.players:
+            self.boards[p] = 0
+
+    def num_moves(self):
+        return len(self.moves)
 
     #todo
     def undo(self):
         last_col = self.moves[len(self.moves) - 1]
         last_row = self.high[last_col]
         index = self.get_index(col=last_col, row=last_row)
-        return index
+        self.set_bit(self.get_player_turn(prev=True), index, turn_on=False)
+        self.moves.pop()
+        self.turn -= 1
 
-
-
-    def init_state(self):
-        self.turn = 0
-        self.game_over = False
-        self.moves = []
-
-        self.high = []
-
-        string = ""
-        for r in range(self.rows + 1):
-            for c in range(self.cols):
-                if r == 0:
-                    string += "0"
-                    self.high.append(0)
-                else:
-                    string += "0"
-
-        boards = []
-        prev_boards = []
-
-        for p in self.players:
-            boards.append( bt.BitArray(bin=string))
-            prev_boards.append(bt.BitArray(bin=string))
-
-        self.prev_boards = prev_boards
-        self.boards = boards
-
+        if self.game_over:
+            self.game_over = False
 
     def get_boards(self):
         return self.boards
 
-    def get_state(self):
+    def get_state(self, player = None):
         state = None
-        for player_board in self.boards:
+
+        if player is not None:
+            return self.boards[player]
+
+        for player, player_board in self.boards.items():
             if state is None:
                 state = player_board
             else:
                 state ^= player_board
-        return state.bin
+        return state
 
-    def placeSequence(self, list):
-        bools = []
-        for choice in list:
-            if self.place(choice):
-                bools.append(True)
-            else:
-                bools.append(False)
-        return bools
+    def to_bit_string(self, player = None):
+        string = 0
+        if player is None:
+            string = self.get_state()
+        else:
+            string = self.get_state(player)
+
+        return "{0:b}".format(string)
 
     def print(self):
-
-        for r in range(self.rows - 1, -1, -1 ):
-            for c in range(0, self.cols):
-
-                #print(self.get_index(c, r), end="\t")
+        for r in range(self.rows):
+            for c in range(self.cols):
                 to_be_printed = 0
-                for j in range(len(self.boards)):
-                    board = self.boards[j]
-                    if board[self.get_index(r,c)] == True:
-                        to_be_printed = j + 1
+                for p, b in self.boards.items():
+                    index = self.get_index(r,c)
+                    if (b >> index) & 1 == 1:
+                        to_be_printed = int(p)
                 print(to_be_printed, end = " ")
             print()
         print()
 
-    def print_player(self, player):
-        for i in range(len(self.players)):
-            if self.players[i] == player:
-                board = self.boards[i]
-                for r in range(self.rows - 1, -1, -1):
-                    for c in range(0, self.cols):
-
-                        # print(self.get_index(c, r), end="\t")
-                        to_be_printed = 0
-
-                        if board[self.get_index(r, c)] == True:
-                            to_be_printed = 1
-                        print(to_be_printed, end=" ")
-                    print()
-
+    def __set_state(self, player, b):
+        if player in self.boards:
+            self.boards[player] = b
 
     def __deepcopy__(self, memodict={}):
-        newBoard = Board(self.players, self.rows, self.cols, self.win_span)
+        newBoard = BitBoard(self.players, self.rows, self.cols, self.win_span)
 
-        for i in range(len(self.boards)):
-            newBoard.boards[i] = copy.deepcopy(self.boards[i])
+        for p, b in self.boards.items():
+            newBoard.__set_state(p, b)
+
         newBoard.turn = self.turn
         newBoard.game_over = self.game_over
         newBoard.moves = copy.deepcopy(self.moves)
         return newBoard
 
-    def get_index(self, col, row):
-        if row >= 0 and row <= self.rows:
-            if col >= 0 and col <= self.cols:
-
-                index = (row)  * self.cols + col
-                return index
-                #return self.board[row, col]
-        return -1
-
     def get(self, row, col):
         index = self.get_index(row, col)
-        if index >= 0:
-            for i in range(len(self.boards)):
-                if self.boards[i][index]:
-                    return self.players[i]
-            return 0
-        return index
+        for p, b in self.boards.items():
+            if (b >> index) & 1 == 1:
+                return p
+        return 0
 
-    def __set(self, row, col, player, value = True):
-        for i in range(len(self.players)):
-            if self.players[i] == player:
 
-                self.boards[i][self.get_index(row, col)] = value
-                return True
-        return False
-               # self.board[self.get_index(row, col)] = "0b1"
+    def set_bit(self, player, bit, turn_on=True):
+        if turn_on:
+            self.boards[player] |= (1 << bit)
+        else:
+            self.boards[player] &= ~(1 << (bit - 1))
 
     def get_last_move(self):
         if len(self.moves) > 0:
             return self.moves[len(self.moves) - 1]
         return None
 
-    def place(self, col):
-        self.check_win()
+    def get_index(self, row, col):
+        return (self.rows - row) + (col * (self.cols - (self.cols - self.rows -1))) - 1
 
-        if not self.game_over:
-            if self.high[col] < self.rows:
-                if self.__set(row = self.high[col], col = col, player = self.get_player_turn()):
-                    self.high[col] += 1
+    def place(self, *cols):
+
+        bools = []
+
+        for col in cols:
+            if not self.game_over:
+                if self.high[col] >= 0:
+                    row = self.high[col]
+                    bit = self.get_index(row=row, col=col)
+
+                    self.set_bit(self.get_player_turn(), bit)
+                    self.high[col] -= 1
                     self.turn += 1
                     self.moves.append(col)
-                    return True
-        return False
+                    bools.append(True)
+                else:
+                    bools.append(False)
+            else:
+                bools.append(False)
+        return bools
 
     def get_player_turn(self, prev=False):
         turn = self.turn
         if prev:
             turn -= 1
 
-        return (self.players[(turn % self.num_players)]);
+        return self.players[(turn % len(self.players))];
 
 
     def get_players(self):
@@ -181,7 +157,7 @@ class Board():
         available = []
 
         for c in range(self.cols):
-            if self.high[c] < self.rows:
+            if self.high[c] >= 0:
                 available.append(c)
 
         if len(available) == 0:
@@ -192,19 +168,22 @@ class Board():
     ##Bitboard black magic
     def check_win(self):
         ##Vertical |, horizontal -, diagonal \, diagonal /
-        directions = [1, 7, 6, 8]
-        for i in range(len(self.players)):
-            board = self.boards[i]
-            for direction in directions:
-                m = board
-                for in_a_row in range(self.win_span):
-                    m = m & (board >> (direction * in_a_row))
-                if m:
-                    self.game_over = True
-                    return self.players[i]
+        directions = [1, self.rows + 1, self.rows, self.rows + 2]
+
+        player_to_check = self.get_player_turn(prev=True)
+        board = self.boards[player_to_check]
+
+        for direction in directions:
+            m = board
+            for in_a_row in range(self.win_span):
+                m = m & (board >> (direction * in_a_row))
+            if m:
+                self.game_over = True
+                if player_to_check is None:
+                    return True
+                return player_to_check
 
         if(len(self.get_actions()) == 0):
             self.game_over = True
             return 0
-
         return -1

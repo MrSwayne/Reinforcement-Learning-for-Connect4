@@ -1,12 +1,13 @@
 import pygame
 from ConnectBoard import *
+from BitBoard import *
 from TicBoard import *
 from Player import *
 import Algorithm as algo
 import time
 
 def create_board(players):
-    return ConnectBoard(players)
+    return BitBoard(players)
 
 def simulation(players, n = 10, _print=False):
     completed_games = []
@@ -27,6 +28,7 @@ def simulation(players, n = 10, _print=False):
 
         if isinstance(winner, Player):
             if isinstance(winner.algorithm, algo.MCTS):
+                print("Saving data: \t", end = " ")
                 winner.algorithm.save_data()
             if isinstance(winner, Bot):
                 print(winner, "(", winner.algorithm, ")", " Won!")
