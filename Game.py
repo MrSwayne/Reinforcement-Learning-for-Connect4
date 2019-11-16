@@ -11,33 +11,39 @@ def create_board(players):
 
 def simulation(players, n = 10, _print=False):
     completed_games = []
+
+    new_states = 0
     for i in range(n):
-        print("Game: ", i)
+        print("Game: ", i, end = "\t")
         board = create_board(players)
         prev_turn = -1
+
+        prev_state = None
+
         while not board.game_over:
             player = board.get_player_turn()
             turn = player.get_choice(board)
 
-            board.place(turn)
 
+            board.place(turn)
             winner = board.check_win()
             if _print:
                  board.print()
         completed_games.append((board))
 
-        if isinstance(winner, Player):
-            if isinstance(winner.algorithm, algo.MCTS):
-                print("Saving data: \t", end = " ")
-                winner.algorithm.save_data()
-            if isinstance(winner, Bot):
-                print(winner, "(", winner.algorithm, ")", " Won!")
-            else:
-                print(winner, " (Human) Won!")
-        else:
-            print("DRAW")
+        for p in players:
+            if p == winner:
+                if isinstance(p, Bot):
+                    if isinstance(p.algorithm, algo.MCTS):
+                            p.algorithm.save_data()
+                            new_states += p.algorithm.num_new_states
 
-    return completed_games
+                    print(winner, "(", winner.algorithm, ")", " Won!")
+                elif isinstance(winner, Player):
+                    print(winner, " (Human) Won!")
+                else:
+                    print("DRAW!")
+    return completed_games, new_states
 
 
 def manual(players, sequence):

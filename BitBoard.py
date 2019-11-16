@@ -23,7 +23,7 @@ class BitBoard():
 
         self.high = []
         for i in range(self.cols):
-            self.high.append(self.rows - 1)
+            self.high.append(self.rows)
 
         self.boards = {}
         for p in self.players:
@@ -37,10 +37,12 @@ class BitBoard():
         last_col = self.moves[len(self.moves) - 1]
         last_row = self.high[last_col]
         index = self.get_index(col=last_col, row=last_row)
+
+
         self.set_bit(self.get_player_turn(prev=True), index, turn_on=False)
         self.moves.pop()
         self.turn -= 1
-
+        self.high[last_col] += 1
         if self.game_over:
             self.game_over = False
 
@@ -90,7 +92,7 @@ class BitBoard():
 
         for p, b in self.boards.items():
             newBoard.__set_state(p, b)
-
+        newBoard.high = copy.deepcopy(self.high)
         newBoard.turn = self.turn
         newBoard.game_over = self.game_over
         newBoard.moves = copy.deepcopy(self.moves)
@@ -118,26 +120,27 @@ class BitBoard():
     def get_index(self, row, col):
         return (self.rows - row) + (col * (self.cols - (self.cols - self.rows -1))) - 1
 
-    def place(self, *cols):
-
+    def place_sequence(self, *cols):
         bools = []
-
         for col in cols:
-            if not self.game_over:
-                if self.high[col] >= 0:
-                    row = self.high[col]
-                    bit = self.get_index(row=row, col=col)
-
-                    self.set_bit(self.get_player_turn(), bit)
-                    self.high[col] -= 1
-                    self.turn += 1
-                    self.moves.append(col)
-                    bools.append(True)
-                else:
-                    bools.append(False)
-            else:
-                bools.append(False)
+            bools.append(self.place(col))
         return bools
+
+
+    def place(self, col):
+
+        if not self.game_over:
+            if self.high[col] > 0:
+                row = self.high[col] - 1
+                bit = self.get_index(row=row, col=col)
+
+                self.set_bit(self.get_player_turn(), bit)
+                self.high[col] -= 1
+                self.turn += 1
+                self.moves.append(col)
+                self.check_win()
+                return True
+        return False
 
     def get_player_turn(self, prev=False):
         turn = self.turn
@@ -151,13 +154,13 @@ class BitBoard():
         return self.players
 
     def get_actions(self):
-        if self.game_over == True:
+        if self.game_over:
             return []
 
         available = []
 
         for c in range(self.cols):
-            if self.high[c] >= 0:
+            if self.high[c] > 0:
                 available.append(c)
 
         if len(available) == 0:
