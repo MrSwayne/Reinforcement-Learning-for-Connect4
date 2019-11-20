@@ -5,14 +5,14 @@ import Game as Game
 from datetime import timedelta
 import Algorithm as algo
 
-
 #players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), train=True)), Bot("Red", algo.Minimax(max_depth=4))]
-players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), learn = True, memory= True, e=0.8)), Bot("Red", algo.MCTS(duration=timedelta(seconds=2), learn = True, memory= True, e=0.8))]
-n = 500
+players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), learn = True, memory= True, e=0.8)), Bot("Red", algo.MCTS(duration=timedelta(seconds=2), learn = True, memory= True, e=0.8)) ]
+n = 50
 
 t0 = time.clock()
 completed_games, new_states = Game.simulation(players, n, _print=False)
 t1 = time.clock()
+
 
 Game.print_results(completed_games)
 print("NEW STATES ({0})".format(new_states))

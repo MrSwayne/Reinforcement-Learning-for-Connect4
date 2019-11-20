@@ -27,21 +27,21 @@ def simulation(players, n = 10, _print=False):
 
             board.place(turn)
             winner = board.check_win()
+
             if _print:
                  board.print()
         completed_games.append((board))
 
         for p in players:
-            if p == winner:
-                if isinstance(p, Bot):
-                    if isinstance(p.algorithm, algo.MCTS):
-                            p.algorithm.save_data()
-                            new_states += p.algorithm.num_new_states
+            if isinstance(p.algorithm, algo.MCTS):
+                    p.algorithm.save_data()
+                    new_states += p.algorithm.num_new_states
 
-                    print(winner, "(", winner.algorithm, ")", " Won!")
-                elif isinstance(winner, Player):
+                    if isinstance(winner, Player):
+                            print(winner, "(", winner.algorithm, ")", " Won!")
+            elif isinstance(winner, Player):
                     print(winner, " (Human) Won!")
-                else:
+            else:
                     print("DRAW!")
     return completed_games, new_states
 

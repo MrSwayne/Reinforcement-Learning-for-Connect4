@@ -24,7 +24,7 @@ class Algorithm():
 
 class MCTS(Algorithm):
 
-    path = 'state_values.csv'
+    path = 'state_values2.csv'
 
     def __init__(self, learn=False, memory=False, duration = None, depth = None, n = None, e = 0.5, g = 0.5, a = 0.8):
         super().__init__()
@@ -61,7 +61,7 @@ class MCTS(Algorithm):
                 if headers:
                     headers = False
                     continue
-                self.table[row[0]] = float(row[1])
+                self.table[row[0]] = [float(row[1]), int(row[2])]
 
     def save_data(self):
 
@@ -72,9 +72,9 @@ class MCTS(Algorithm):
                 f.close()
             with open(MCTS.path, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=';')
-                writer.writerow(["state", "value"])
-                for state, value in self.table.items():
-                    writer.writerow([state, value])
+                writer.writerow(["state", "value", "visits"])
+                for state, valueVisits in self.table.items():
+                    writer.writerow([state, valueVisits[0], valueVisits[1]])
 
     def should_continue(self):
         if self.duration:
@@ -89,43 +89,41 @@ class MCTS(Algorithm):
 
         return False
 
+
     def get_move(self, state, player):
         self.end = None
         self.current_n = 0
 
+        #Create game tree
         self.game_tree = Tree(player=player, state=state)
         self.root = self.game_tree.root
 
+        #Add state to value function if new
         if self.root.get_state() not in self.table:
-            self.table[self.root.get_state()] = self.reward(self.root.state)
+            self.table[self.root.get_state()] = [self.reward(self.root.state), self.root.visit_count]
             self.num_new_states += 1
 
         node = self.root
+
+        #Based on initial conditions like time per turn, or X amount of simulations etc.
         while self.should_continue() and not node.state.game_over:
             self.current_n += 1
 
+            #Selection
             node = self.select_node()
+
+            #Expansion
             if not node.state.game_over:
                 self.expand(node)
+
+            #Simulation
             terminal_state = self.simulation(node)
+
+            #Backpropagation
             self.backpropagate(node, self.reward(terminal_state))
 
         self.update_value(node)
         return node.state.get_last_move()
-        '''
-    def update_value(self, node):
-
-        score = self.reward(node.state)
-        if score == 0:
-            print("backpropagating 0 score")
-        while node.parent is not None:
-            if node.parent.get_state() not in self.table:
-                self.table[node.parent.get_state()] = score
-            if node.get_state() not in self.table:
-                self.table[node.get_state()] = score
-            self.table[node.parent.get_state()] = self.table[node.parent.get_state()] + self.a * (score + (self.g * self.table[node.get_state()]) - self.table[node.parent.get_state()] )
-            node = node.parent
-        '''
 
     def simulation(self, node):
         state = deepcopy(node.state)
@@ -139,13 +137,12 @@ class MCTS(Algorithm):
 
         while node.parent is not None:
             if node.parent.get_state() not in self.table:
-                self.table[node.parent.get_state()] = 0
+                self.table[node.parent.get_state()] = [node.parent.score / node.parent.visit_count, node.parent.visit_count]
                 self.num_new_states += 1
             if node.get_state() not in self.table:
-                self.table[node.get_state()] = score
+                self.table[node.get_state()] = [score, node.visit_count]
                 self.num_new_states += 1
-            self.table[node.parent.get_state()] = self.table[node.parent.get_state()] + self.a * (score + (self.g * self.table[node.get_state()]) - self.table[node.parent.get_state()] )
-
+            self.table[node.parent.get_state()][0] = self.table[node.parent.get_state()][0] + self.a * (score + (self.g * self.table[node.get_state()][0]) - self.table[node.parent.get_state()][0] )
             node = node.parent
 
 
@@ -171,8 +168,9 @@ class MCTS(Algorithm):
 
         for child in children:
             if child.get_state() in self.table:
-                child.score = self.table[child.get_state()]
-                child.visit_count += 1
+                child.visit_count = self.table[child.get_state()][1]
+                child.score = self.table[child.get_state()][0] * child.visit_count
+
             node.children.append(child)
 
     def UCB(self, node):
@@ -206,13 +204,10 @@ class MCTS(Algorithm):
 
     def select_node(self):
         node = self.root
-        #Go until leaf node
 
-        count = 0
+        #Go until leaf node
         while (len(node.children) != 0):
             node = self.get_best_child(node)
-
-
         return node
 
 
@@ -229,15 +224,12 @@ class Node:
     def get_state(self):
         boards = ""
         for p in self.state.players:
-            boards += (str(self.state.get_state(p))) + " "
-        return boards
-
-   # def get_state(self):
-     #   return self.state.to_bit_string(self.player)
-
+            boards += (str(bin(self.state.get_state(p)))) + " "
+        return boards + str(int(self.state.get_player_turn()) - 1)
 
     def __repr__(self):
         return "{" + str(self.prev_action) + "," + str(self.score) + "," + str(self.visit_count) + "}"
+
     def get_child_states(self):
         states = []
         for action in self.state.get_actions():

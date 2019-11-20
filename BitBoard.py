@@ -105,7 +105,6 @@ class BitBoard():
                 return p
         return 0
 
-
     def set_bit(self, player, bit, turn_on=True):
         if turn_on:
             self.boards[player] |= (1 << bit)
@@ -120,7 +119,7 @@ class BitBoard():
     def get_index(self, row, col):
         return (self.rows - row) + (col * (self.cols - (self.cols - self.rows -1))) - 1
 
-    def place_sequence(self, *cols):
+    def place_sequence(self, cols):
         bools = []
         for col in cols:
             bools.append(self.place(col))
@@ -173,20 +172,28 @@ class BitBoard():
         ##Vertical |, horizontal -, diagonal \, diagonal /
         directions = [1, self.rows + 1, self.rows, self.rows + 2]
 
+        #Only need to worry about the player who placed last
         player_to_check = self.get_player_turn(prev=True)
+
         board = self.boards[player_to_check]
 
         for direction in directions:
             m = board
-            for in_a_row in range(self.win_span):
-                m = m & (board >> (direction * in_a_row))
+
+            #Loop for however many discs we need in a row
+            for i in range(self.win_span):
+
+                #Shift the board i amount of columns/rows
+                m = m & (board >> (direction * i))
+
+            #If after the board is shifted and logical AND'ed together >= 1, that means there is 4 in a row
             if m:
                 self.game_over = True
-                if player_to_check is None:
-                    return True
                 return player_to_check
 
+        #If there are no actions, then it's a draw
         if(len(self.get_actions()) == 0):
             self.game_over = True
             return 0
+        #Game is on going
         return -1
