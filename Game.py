@@ -35,7 +35,7 @@ def simulation(players, n = 10, _print=False):
         for p in players:
             if isinstance(p.algorithm, algo.MCTS):
                     p.algorithm.save_data()
-                    new_states += p.algorithm.num_new_states
+                    new_states = p.algorithm.num_new_states
 
                     if isinstance(winner, Player):
                             print(winner, "(", winner.algorithm, ")", " Won!")
