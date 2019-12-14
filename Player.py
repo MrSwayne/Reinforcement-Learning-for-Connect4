@@ -54,10 +54,11 @@ class Human(Player):
 
 class Bot(Player):
 
-    def __init__(self, colour, algorithm):
+    def __init__(self, colour, algorithm, neural_net = None):
         Player.__init__(self, colour)
         self.best_choice = -1
         self.algorithm = algorithm
+        self.neural_net = neural_net
 
     def get_choice(self, board):
         return self.algorithm.get_move(state=board, player = self)

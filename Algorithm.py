@@ -26,7 +26,7 @@ class MCTS(Algorithm):
 
     path = 'state_values.csv'
 
-    def __init__(self, learn=False, memory=False, duration = None, depth = None, n = None, e = 0.5, g = 0.5, a = 0.8):
+    def __init__(self, train = False, duration = None, depth = None, n = None, e = 0.5, g = 0.5, a = 0.8):
         super().__init__()
         self.e = e
         self.duration = duration
@@ -37,44 +37,11 @@ class MCTS(Algorithm):
         self.g = g
         self.value_function = {}
         self.policy_function = {}
-        self.memory = memory
-        self.learn = learn
+        self.train = train
 
         self.num_new_states = 0
         if not duration and not depth and not n:
             self.n = 250
-
-        if memory:
-            self.load_data()
-
-    def load_data(self):
-        self.value_function = {}
-        if not os.path.isfile(MCTS.path):
-            f = open(MCTS.path, "w+")
-            f.close()
-
-        with open(MCTS.path, 'r' ) as csvfile:
-            reader = csv.reader(csvfile, delimiter=';')
-
-            headers = True
-            for row in reader:
-                if headers:
-                    headers = False
-                    continue
-                self.value_function[row[0]] = float(row[1])
-
-    def save_data(self):
-
-        if self.value_function and self.learn:
-            print(" Saving DATA:  ", end=" ")
-            if not os.path.isfile(MCTS.path):
-                f = open(MCTS.path, "r+")
-                f.close()
-            with open(MCTS.path, 'w', newline='') as csvfile:
-                writer = csv.writer(csvfile, delimiter=';')
-                writer.writerow(["state", "value"])
-                for state, value in self.value_function.items():
-                    writer.writerow([state, value])
 
     def should_continue(self):
         if self.duration:
@@ -96,7 +63,7 @@ class MCTS(Algorithm):
 
         #Create game tree
         self.root = Node(parent=None, state=state, player=player, prev_action=-1)
-        self.add_to_table(self.root)
+      #  self.add_to_table(self.root)
 
         #Based on initial conditions like time per turn, or X amount of simulations etc.
         while self.should_continue():
@@ -115,14 +82,17 @@ class MCTS(Algorithm):
             #Backpropagation
             self.backpropagate(node, self.reward(terminal_state))
 
-        best_child = self.get_best_child(self.root)
 
+      #  prob_vector = []
+      #  for child in self.root.children:
+        best_child = self.get_best_child(self.root)
+       # self.root.print()
+      #  print(best_child)
+      #  time.sleep(3)
         return best_child.state.get_last_move()
 
     def simulation(self, node):
-        state = deepcopy(node.state)
-        terminal_state = self.rollout_policy(state)
-        return terminal_state
+        return self.rollout_policy(node.state)
 
 
     def update_value(self, node):
@@ -177,7 +147,7 @@ class MCTS(Algorithm):
         while node is not None:
             node.visit_count += 1
             node.score += reward
-            self.update_value(node)
+        #    self.update_value(node)
             node = node.parent
 
     def expand(self, node):
@@ -196,13 +166,14 @@ class MCTS(Algorithm):
         return (cs / cvc + ( self.e * math.sqrt(math.log(pvc) / cvc)))
 
     def rollout_policy(self, state):
-        while not state.game_over:
-            actions = state.get_actions()
-            if len(state.get_actions()) > 0:
-                state.place(random.choice(actions))
+        temp_state = deepcopy(state)
+        while not temp_state.game_over:
+            actions = temp_state.get_actions()
+            if len(temp_state.get_actions()) > 0:
+                temp_state.place(random.choice(actions))
             else:
                 break
-        return state
+        return temp_state
 
     def get_best_child(self, node):
         max_score = float('-inf')
@@ -246,6 +217,11 @@ class Node:
 
     def __repr__(self):
         return "{" + str(self.tag) + "," + str(self.score) + "," + str(self.visit_count) + "}"
+
+    def print(self):
+        print(repr(self), "->", self.children)
+        for child in self.children:
+            child.print()
 
 
 

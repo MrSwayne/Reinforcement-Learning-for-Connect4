@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import sys
 import time
 import copy
+
+
 class BitBoard():
 
     # rows
@@ -12,7 +14,7 @@ class BitBoard():
     # win_span = # in a row for a win (default 4 because it's connect4 lol)
     #
 
-    def __init__(self, players = [], rows=6, cols=7, win_span = 4):
+    def __init__(self, players=[], rows=6, cols=7, win_span=4):
         self.rows = rows
         self.cols = cols
         self.players = players
@@ -20,6 +22,7 @@ class BitBoard():
         self.turn = 0
         self.game_over = False
         self.moves = []
+
 
         self.high = []
         for i in range(self.cols):
@@ -32,12 +35,11 @@ class BitBoard():
     def num_moves(self):
         return len(self.moves)
 
-    #todo
+    # todo
     def undo(self):
         last_col = self.moves[len(self.moves) - 1]
         last_row = self.high[last_col]
         index = self.get_index(col=last_col, row=last_row)
-
 
         self.set_bit(self.get_player_turn(prev=True), index, turn_on=False)
         self.moves.pop()
@@ -49,11 +51,11 @@ class BitBoard():
     def get_boards(self):
         return self.boards
 
-    def get_state(self, player = None):
+    def get_state(self, player=None):
         state = None
-
         if player is not None:
-            return self.boards[player]
+            # Return the current player's state, and the state mask
+            return self.boards[player], self.get_state(player=None)
 
         for player, player_board in self.boards.items():
             if state is None:
@@ -62,7 +64,18 @@ class BitBoard():
                 state ^= player_board
         return state
 
-    def to_bit_string(self, player = None):
+    def reset(self):
+        for p in self.players:
+            self.boards[p] = 0
+
+        self.turn = 0
+        self.game_over = False
+        self.moves = []
+        self.high = []
+        for i in range(self.cols):
+            self.high.append(self.rows)
+
+    def to_bit_string(self, player=None):
         string = 0
         if player is None:
             string = self.get_state()
@@ -76,14 +89,14 @@ class BitBoard():
             for c in range(self.cols):
                 to_be_printed = 0
                 for p, b in self.boards.items():
-                    index = self.get_index(r,c)
+                    index = self.get_index(r, c)
                     if (b >> index) & 1 == 1:
                         to_be_printed = int(p)
-                print(to_be_printed, end = " ")
+                print(to_be_printed, end=" ")
             print()
         print()
 
-    def __set_state(self, player, b):
+    def set_state(self, player, b):
         if player in self.boards:
             self.boards[player] = b
 
@@ -91,7 +104,7 @@ class BitBoard():
         newBoard = BitBoard(self.players, self.rows, self.cols, self.win_span)
 
         for p, b in self.boards.items():
-            newBoard.__set_state(p, b)
+            newBoard.set_state(p, b)
         newBoard.high = copy.deepcopy(self.high)
         newBoard.turn = self.turn
         newBoard.game_over = self.game_over
@@ -117,14 +130,13 @@ class BitBoard():
         return None
 
     def get_index(self, row, col):
-        return (self.rows - row) + (col * (self.cols - (self.cols - self.rows -1))) - 1
+        return (self.rows - row) + (col * (self.cols - (self.cols - self.rows - 1))) - 1
 
     def place_sequence(self, cols):
         bools = []
         for col in cols:
             bools.append(self.place(col))
         return bools
-
 
     def place(self, col):
 
@@ -147,7 +159,6 @@ class BitBoard():
             turn -= 1
 
         return self.players[(turn % len(self.players))];
-
 
     def get_players(self):
         return self.players
@@ -172,7 +183,7 @@ class BitBoard():
         ##Vertical |, horizontal -, diagonal \, diagonal /
         directions = [1, self.rows + 1, self.rows, self.rows + 2]
 
-        #Only need to worry about the player who placed last
+        # Only need to worry about the player who placed last
         player_to_check = self.get_player_turn(prev=True)
 
         board = self.boards[player_to_check]
@@ -180,20 +191,19 @@ class BitBoard():
         for direction in directions:
             m = board
 
-            #Loop for however many discs we need in a row
+            # Loop for however many discs we need in a row
             for i in range(self.win_span):
-
-                #Shift the board i amount of columns/rows
+                # Shift the board i amount of columns/rows
                 m = m & (board >> (direction * i))
 
-            #If after the board is shifted and logical AND'ed together >= 1, that means there is 4 in a row
+            # If after the board is shifted and logical AND'ed together >= 1, that means there is 4 in a row
             if m:
                 self.game_over = True
                 return player_to_check
 
-        #If there are no actions, then it's a draw
-        if(len(self.get_actions()) == 0):
+        # If there are no actions, then it's a draw
+        if (len(self.get_actions()) == 0):
             self.game_over = True
             return 0
-        #Game is on going
+        # Game is on going
         return -1
