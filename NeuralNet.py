@@ -23,19 +23,16 @@ class NeuralNet:
         model.add(k.layers.Dense(80, input_dim=2, activation='relu'))
         model.add(k.layers.Dense(80, activation='relu'))
         model.add(k.layers.Dense(80, activation='relu'))
-        model.add(k.layers.Dense(7, activation='softmax'))
+        model.add(k.layers.Dense(7, activation='sigmoid'))
 
-        model.compile(loss='binary_crossentropy', optimizer= k.optimizers.Adam(learning_rate=0.0005), metrics=['accuracy'])
+        model.compile(loss='binary_crossentropy', optimizer= k.optimizers.Adam(learning_rate=0.5), metrics=['accuracy'])
         return model
 
-    def learn(self, state, next_state, action, reward):
-
-        action_vector = self.model.predict(state)
-        action_vector[0][action] = reward + self.gamma * np.argmax(self.model.predict(next_state))
+    def learn(self, X, Y):
 
       #  action_vector = self.model.predict(state)
 
-        self.model.fit(state, action_vector, epochs=1)
+        self.model.fit(X, Y, epochs=1)
 
     #    print("NN: ", action_vector, "\tMCTS: ", action)
 

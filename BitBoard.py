@@ -32,6 +32,8 @@ class BitBoard():
         for p in self.players:
             self.boards[p] = 0
 
+        self.num_bandits = len(self.get_actions())
+
     def num_moves(self):
         return len(self.moves)
 
@@ -119,6 +121,8 @@ class BitBoard():
         return 0
 
     def set_bit(self, player, bit, turn_on=True):
+
+
         if turn_on:
             self.boards[player] |= (1 << bit)
         else:
@@ -130,7 +134,7 @@ class BitBoard():
         return None
 
     def get_index(self, row, col):
-        return (self.rows - row) + (col * (self.cols - (self.cols - self.rows - 1))) - 1
+        return int((self.rows - row) + (col * (self.cols - (self.cols - self.rows - 1))) - 1)
 
     def place_sequence(self, cols):
         bools = []
@@ -183,7 +187,7 @@ class BitBoard():
         ##Vertical |, horizontal -, diagonal \, diagonal /
         directions = [1, self.rows + 1, self.rows, self.rows + 2]
 
-        # Only need to worry about the player who placed last
+        # Only need to worry about the player who placed last, assuming that check_win is called after every placement
         player_to_check = self.get_player_turn(prev=True)
 
         board = self.boards[player_to_check]

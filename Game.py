@@ -5,22 +5,49 @@ from BitBoard import *
 from TicBoard import *
 from Player import *
 import Algorithm as algo
-from keras.utils import to_categorical
+#from keras.utils import to_categorical
 import time
 import os
 import csv
-path = "state_action.csv"
+import pandas
+
+tree_path = "tree_data.csv"
+value_path = "values.csv"
+
 
 def create_board(players):
     return BitBoard(players)
 
-def load_data():
+
+def load_tree_data():
     table = {}
-    if not os.path.isfile(path):
-        f = open(path, "w+")
+    if not os.path.isfile(tree_path):
+        f = open(tree_path, "w+")
         f.close()
 
-    with open(path, 'r' ) as csvfile:
+    with open(tree_path, 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        headers = True
+        for row in reader:
+            if headers:
+                headers = False
+                continue
+
+            if len(row) == 4:
+                try:
+                    table[row[0], row[1]] = (float(row[2]), float(row[3]))
+                except:
+                    continue
+    return table
+
+
+def load_value_function():
+    table = {}
+    if not os.path.isfile(value_path):
+        f = open(value_path, "w+")
+        f.close()
+
+    with open(value_path, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=';')
         headers = True
         for row in reader:
@@ -35,84 +62,144 @@ def load_data():
                     continue
     return table
 
-def save_data( table):
-        if not os.path.isfile(path):
-            f = open(path, "r+")
-            f.close()
-        with open(path, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile, delimiter=';')
-            writer.writerow(["state","mask", "action"])
-            for state, action in table.items():
-                writer.writerow([state[0], state[1], action])
+
+def save_value_function(table):
+    if not os.path.isfile(tree_path):
+        f = open(value_path, "r+")
+        f.close()
+    with open(value_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=';')
+        writer.writerow(["state", "mask", "value"])
+        for state, value in table.items():
+            writer.writerow([state[0], state[1], value])
+
+
+def save_tree_data(table):
+    if not os.path.isfile(tree_path):
+        f = open(tree_path, "r+")
+        f.close()
+    with open(tree_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=';')
+        writer.writerow(["state", "mask", "score", "visit count"])
+        for state, node in table.items():
+            writer.writerow([state[0], state[1], node[0], node[1]])
+
 
 class _State:
     def __init__(self, player_state, mask):
         self.player_state = player_state
         self.mask = mask
 
+
 def simulation(players, num_episodes=10, _print=False):
     completed_games = []
 
-    new_states = 0
-    policy_table = load_data()
-
     state = create_board(players)
 
+    tree_data = load_tree_data()
+    value_function = load_value_function()
+    for p in players:
+        if isinstance(p.algorithm, algo.MCTS):
+            if p.algorithm.memory == True:
+                p.algorithm.tree_data = tree_data
+
+    winners = {}
+    alpha = 0.8
+    gamma = 0.9
+
     for i in range(num_episodes):
-        print("Game: ", i, end="\t")
+
+        print("Game: ", i + 1)
 
         state.reset()
-        total_actions = len(state.get_actions())
 
-        last_action = -1
         while not state.game_over:
-            player = state.get_player_turn()
-            action = player.get_choice(state)
-
-            player_state, state_mask = state.get_state(player)
-           # old_states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
-            old_states = np.array([[player_state, state_mask]])
-            state.place(action)
-
-            if isinstance(player.algorithm, algo.MCTS):
-
-                player_state, state_mask = state.get_state(player)
-
-                if player.neural_net is not None:
-                    print("MCTS: ", action, "\tNN:", player.neural_net.model.predict(old_states))
-                  #  action_vector = np.array([to_categorical(action, num_classes=total_actions)])
-                    #states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
-                    states = np.array([[player_state, state_mask]])
-                    # neural_action = np.argmax(player.neural_net.predict(states))
-
-              #      action_vector[action]
-                    player.neural_net.learn(state=old_states, next_state=states, action=action,reward= player.algorithm.reward(state))
-
-            winner = state.check_win()
 
             if _print:
                 state.print()
 
+            player = state.get_player_turn()
+            action = player.get_choice(state)
+
+            player_state, state_mask = state.get_state(player)
+            # old_states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
+            #  old_states = np.array([[player_state, state_mask]])
+
+            #  action = np.argmax(action_vector)
+            state.place(action)
+            winner = state.check_win()
+
+
+
+
+            '''
+            for p in players:
+                
+                if isinstance(p.algorithm, algo.MCTS):
+                    reward = get_reward(p, winner)
+                    visited_states[p].append(state.get_state(p))
+
+                    t_temp = time_step
+                    while t_temp > 0:
+                        s = visited_states[p][t_temp]
+                        prev_s = visited_states[p][t_temp - 1]
+                        if s not in value_function:
+                            if state.game_over:
+                                value_function[s] = reward
+                            else:
+                                value_function[s] = 0.5
+                        value_function[prev_s] = value_function[prev_s] + alpha * (reward + gamma * value_function[s] - value_function[prev_s])
+                        t_temp -= 1
+            '''
+        if isinstance(player.algorithm, algo.MCTS):
+
+            player_state, state_mask = state.get_state(player)
+
+            if player.neural_net is not None:
+                pass
+                #  action_vector = np.array([to_categorical(action, num_classes=total_actions)])
+                # states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
+                #         states = np.array([[player_state, state_mask]])
+                # neural_action = np.argmax(player.neural_net.predict(states))
+
+                #      action_vector[action]
+                '''
+                print("AV->", action_vector)
+                print("P-->", player.neural_net.model.predict(states))
+                player.neural_net.learn(X = old_states, Y= np.array([action_vector]))
+                print("P-->", player.neural_net.model.predict(states))
+                print()
+                '''
+
+        if winner in winners:
+            winners[winner] += 1
+        else:
+            winners[winner] = 0
+        if _print:
+            state.print()
+
+        if ((i + 1) % 4 == 0 or i == num_episodes - 1) and isinstance(p.algorithm, algo.MCTS):
+            save_tree_data(tree_data)
         completed_games.append(deepcopy(state))
 
-        for p in players:
-            if isinstance(p.algorithm, algo.MCTS):
-                new_states = p.algorithm.num_new_states
-
-
-        if isinstance(winner, Player):
-                print(winner, "(", winner.algorithm, ")", " Won!")
-        elif isinstance(winner, Player):
-            print(winner, " (Human) Won!")
-        else:
+        if (winner == 0):
             print("DRAW!")
+        else:
+            print(winner, " Won!")
 
-    save_data(policy_table)
-    for player in players:
-        if player.neural_net is not None:
-            player.neural_net.save()
+    return completed_games, 0
 
-    return completed_games, new_states
+
+def get_reward(player, winner):
+    if int(winner) < 0:
+        return 0
+    elif int(winner) == 0:
+        return 0.5
+    elif winner == player:
+        return 1
+    else:
+        return -1
+
 
 def manual(players, sequence):
     completed_games = []
@@ -186,6 +273,9 @@ def print_results(completed_games):
     for state in completed_games:
         state.print()
 
+        for p in state.players:
+            print(state.get_state(p))
+
         winner = state.check_win()
         if winner in winners:
             winners[winner] += 1
@@ -194,4 +284,12 @@ def print_results(completed_games):
         print(winner)
 
     print("out of {0} games".format(len(completed_games)))
+
+    max_score = 0
+    most_wins = None
+    for winner, score in winners.items():
+        if score > max_score:
+            max_score = max_score
+            most_wins = winner
     print(winners)
+    return most_wins

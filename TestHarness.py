@@ -1,27 +1,49 @@
 from BitBoard import BitBoard
 from Player import *
 import Algorithm as algo
+import NeuralNet as NN
+import numpy as np
 import bitstring
-players =[Bot("Red", algo.MCTS()), Bot("Green", algo.Random())]
+from sklearn.preprocessing import OneHotEncoder
+
+
+players = [Bot("blue", algo.MCTS(n=500)), Bot("Red", algo.MCTS(n=500))]
+
 b = BitBoard(players)
+#[['0000000000000000000000000000000000000011100000000100000000000000'
+ # '0000000000000000000001000000000000010011111000001100000000000000']]
+b.place(6)
+b.place(0)
+b.set_state(players[0], int('0b0000000000000000000000000000000000000011100000000100000000000000',2))
+b.set_state(players[1], int('0b0000000000000000000001000000000000010011111000001100000000000000', 2))
 
-b.place_sequence([0,3,2,3,2,3,2,2,1,3])
+print(bin(b.get_state(players[0])[0]))
 
-for r in range(b.rows):
-    for c in range(b.cols):
-        print(b.get_index(r, c), end = " ")
-    print()
+print(bin(b.get_state(players[1])[0]))
 
-import time
+map = {}
 
-for p, b in b.boards.items():
-    t0 = time.clock()
-    for i in range(10000):
-        bin(b)
+import random
+for i in range(20):
+    for j in range(15):
+        map[i,j] = random.randint(0,1)
 
-    t1 = time.clock()
-    print(t1 - t0)
-n = 10000
-import time
 
+
+for state, value in map.items():
+    print(state[0], " ", state[1], " ", value)
+
+print(map[19,13])
+print(map[(19,13)])
+
+import sys
+
+map[5] = (6,7)
+
+one, two = map[5]
+
+print(one, "->", two)
+
+import Game
+Game.draw([b])
 

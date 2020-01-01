@@ -1,5 +1,5 @@
 from abc import abstractmethod
-
+import Algorithm as algo
 
 class Player():
     num_players = 0
@@ -9,12 +9,17 @@ class Player():
         "GREEN":(0,255,0),
         "BLUE":(0,0,255),
         "BLACK":(0,0,0),
-        "WHITE":(255,255,255)
+        "WHITE":(255,255,255),
+        "YELLOW":(255,255,0),
+        "AQUA":(0,128,128),
+        "GRAY":(128,128,128),
+        "NAVY":(0,0,128),
+        "ORANGE":(265,165,0)
     }
 
     def __init__(self, colour):
         Player.num_players += 1
-
+        self.algorithm = None
         if colour.upper() in self.colours:
             self.colour = colour.upper()
         else:
@@ -38,7 +43,7 @@ class Player():
     def get_rgb(self):
         return self.colours[self.colour]
 
-
+import random
 class Human(Player):
 
     def __init__(self, colour):
@@ -50,7 +55,12 @@ class Human(Player):
         print("Select from: ", actions , end=": ")
         user_action = input()
 
-        return int(user_action)
+        action_probability = [0 for i in range(board.num_bandits)]
+        try:
+            action_probability[int(user_action)] = 1
+        except:
+            action_probability[random.choice(actions)] = 1
+        return action_probability
 
 class Bot(Player):
 
@@ -61,4 +71,4 @@ class Bot(Player):
         self.neural_net = neural_net
 
     def get_choice(self, board):
-        return self.algorithm.get_move(state=board, player = self)
+        return self.algorithm.get_move(state=board, player=self)
