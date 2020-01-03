@@ -119,7 +119,11 @@ def simulation(players, num_episodes=10, _print=False):
                 state.print()
 
             player = state.get_player_turn()
+
             action = player.get_choice(state)
+
+            if isinstance(player.algorithm, algo.MCTS):
+                print(player, "\t",player.algorithm.root, "->", player.algorithm.root.children)
 
             player_state, state_mask = state.get_state(player)
             # old_states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
@@ -151,25 +155,24 @@ def simulation(players, num_episodes=10, _print=False):
                         value_function[prev_s] = value_function[prev_s] + alpha * (reward + gamma * value_function[s] - value_function[prev_s])
                         t_temp -= 1
             '''
-        if isinstance(player.algorithm, algo.MCTS):
+            if isinstance(player.algorithm, algo.MCTS):
+                player_state, state_mask = state.get_state(player)
 
-            player_state, state_mask = state.get_state(player)
+                if player.neural_net is not None:
+                    pass
+                    #  action_vector = np.array([to_categorical(action, num_classes=total_actions)])
+                    # states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
+                    #         states = np.array([[player_state, state_mask]])
+                    # neural_action = np.argmax(player.neural_net.predict(states))
 
-            if player.neural_net is not None:
-                pass
-                #  action_vector = np.array([to_categorical(action, num_classes=total_actions)])
-                # states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
-                #         states = np.array([[player_state, state_mask]])
-                # neural_action = np.argmax(player.neural_net.predict(states))
-
-                #      action_vector[action]
-                '''
-                print("AV->", action_vector)
-                print("P-->", player.neural_net.model.predict(states))
-                player.neural_net.learn(X = old_states, Y= np.array([action_vector]))
-                print("P-->", player.neural_net.model.predict(states))
-                print()
-                '''
+                    #      action_vector[action]
+                    '''
+                    print("AV->", action_vector)
+                    print("P-->", player.neural_net.model.predict(states))
+                    player.neural_net.learn(X = old_states, Y= np.array([action_vector]))
+                    print("P-->", player.neural_net.model.predict(states))
+                    print()
+                    '''
 
         if winner in winners:
             winners[winner] += 1
@@ -271,10 +274,12 @@ def draw(states, width=1280, height=720):
 def print_results(completed_games):
     winners = {}
     for state in completed_games:
-        state.print()
+       # state.print()
 
         for p in state.players:
-            print(state.get_state(p))
+            print(state.get_state(p), end = ";")
+        print()
+        print(state.moves)
 
         winner = state.check_win()
         if winner in winners:

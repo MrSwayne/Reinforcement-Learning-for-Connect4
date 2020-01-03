@@ -67,15 +67,17 @@ class MCTS(Algorithm):
             node = self.select_node()
 
             #Expansion
-            if not node.state.game_over:
-                self.expand(node)
+            if not node.state.game_over and node.visit_count != 0:
+                node = self.expand(node)
 
             #Simulation
-            reward = self.simulation(node)
+            winner = self.simulation(node)
+
 
             #Backpropagation
-            self.backpropagate(node, reward)
+            self.backpropagate(node, winner)
 
+         #   print(self.root, "->", self.root.children)
         return self.child_policy(self.root).prev_action
 
     def select_node(self):
@@ -85,10 +87,6 @@ class MCTS(Algorithm):
         while (len(node.children) != 0):
             node = self.tree_policy(node)
 
-        if node.get_state() not in self.tree_data:
-            #Initialise node to have an estimate of a 50% chance of winning
-            self.tree_data[node.get_state()] = (0.5, 1)
-
         return node
 
     def expand(self, node):
@@ -96,39 +94,65 @@ class MCTS(Algorithm):
             child = self.create_node(parent=node, action=action, player=node.state.get_player_turn())
             node.children.append(child)
 
+        return self.tree_policy(node)
+
 
     def simulation(self, node):
-        terminal_state = self.rollout_policy(node.state)
-        return self.reward(node.player, terminal_state)
 
-    def backpropagate(self, node, reward):
-        while node is not None:
-            node.score += reward
+        winner = node.state.check_win()
+        if(isinstance(winner, type(self.root.player)) and winner is not self.root.player):
+            node.parent.score = -2147483647
+
+        terminal_state = self.rollout_policy(node.state)
+
+        return terminal_state.check_win()
+
+    def backpropagate(self, node, winner):
+
+        #default MCTS
+        while node.parent is not None:
+            if node.player == winner:
+                node.score += 1
             node.visit_count += 1
-            self.tree_data[node.get_state()] = (node.score, node.visit_count)
+         #   self.tree_data[node.get_state()] = (node.score, node.visit_count)
             node = node.parent
 
-
         '''
-        player = node.player
+        #RL
+        while node.parent is not None:
+            node.visit_count += 1
+            node.score += reward
+            self.tree_data[node.get_state()] = (node.score, node.visit_count)
+            node = node.parent
+ 
         node.visit_count += 1
-        node.score += reward
+
+
+        alpha = 1 / node.visit_count
+        node.score = node.score + alpha * (reward)
         self.tree_data[node.get_state()] = (node.score, node.visit_count)
         while node.parent is not None:
             node.parent.visit_count += 1
+
+            #Learning Rate inversely proportional to amount of visits of the state, more visits = smaller update step
             alpha = 1 / node.parent.visit_count
-            node.parent.score = node.parent.score + alpha * (reward + self.g * node.score - node.parent.score)
+            node.parent.score = node.parent.score + alpha * (reward + self.g *node.score - node.parent.score)
             self.tree_data[node.parent.get_state()] = (node.parent.score, node.parent.visit_count)
+            if node.parent.upper_bound < node.score:
+                node.parent.upper_bound = node.score
+            if node.parent.lower_bound > node.score:
+                node.parent.lower_bound = node.score
             node = node.parent
-        '''
+    '''
 
-    def reward(self, player, state):
+    def reward(self, state):
         check_win = state.check_win()
-
-        if check_win == player:
+        if check_win == self.root.player:
             return 1
-        else:
+        elif(int(check_win) <= 0):
             return 0
+        else:
+            return -1
 
 
     #UCB
@@ -136,6 +160,8 @@ class MCTS(Algorithm):
         max_score = float('-inf')
 
         best_children = []
+        scores = []
+
         for child in node.children:
             pvc = node.visit_count
             cvc = child.visit_count
@@ -143,7 +169,13 @@ class MCTS(Algorithm):
 
             if cvc == 0:
                 score = float('inf')
+
+
             else:
+              #  cs = (cs - node.upper_bound) / (node.upper_bound - node.lower_bound) + 1
+
+
+              #  print(node, "->", node.children)
                 score = cs / cvc + (self.e * math.sqrt(math.log(pvc) / cvc))
 
             if score > max_score:
@@ -151,6 +183,7 @@ class MCTS(Algorithm):
                 max_score = score
             if score >= max_score:
                 best_children.append(child)
+            scores.append(score)
 
         return random.choice(best_children)
 
@@ -178,7 +211,8 @@ class MCTS(Algorithm):
     def create_node(self, parent=None, action=-1, state=None, player=None):
 
         if parent is None:
-            node = Node(parent=None, state=state, player=player, prev_action=action, depth=0)
+            dummy_node = Node(parent=None, state=None, player=None, prev_action=None, depth=None)
+            node = Node(parent=dummy_node, state=state, player=player, prev_action=action, depth=0)
         else:
             temp_board = deepcopy(parent.state)
             temp_board.place(action)
@@ -186,8 +220,8 @@ class MCTS(Algorithm):
 
         state = node.get_state()
 
-        if state in self.tree_data:
-            node.score, node.visit_count = self.tree_data[state]
+      #  if state in self.tree_data:
+       #     node.score, node.visit_count = self.tree_data[state]
           #  print("Loading:", "\t", node.score, "\t", node.visit_count)
         return node
 
@@ -203,13 +237,15 @@ class Node:
         self.prev_action = prev_action
         self.depth = depth
         self.tag = str(depth) + "_" + str(prev_action)
+        self.upper_bound = 1
+        self.lower_bound = 0
 
     def get_state(self):
         board, mask = self.state.get_state(self.player)
         return (board, mask)
 
     def __repr__(self):
-        return "{" + str(self.tag) + "," + str(self.score) + "," + str(self.visit_count) + "}"
+        return "{" + str(self.tag) + "," + str(self.score) + "," + str(self.visit_count)  + "}"
 
     def print(self):
         print(repr(self), "->", self.children)
@@ -225,15 +261,8 @@ class Random(Algorithm):
 
     def get_move(self, state, player):
         choice = random.choice(state.get_actions())
-        probability = []
 
-        for i in range(state.num_bandits):
-            if choice == i:
-                probability.append(1)
-            else:
-                probability.append(0)
-
-        return probability
+        return choice
 
 
 

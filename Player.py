@@ -53,14 +53,15 @@ class Human(Player):
         actions = board.get_actions()
         board.print()
         print("Select from: ", actions , end=": ")
-        user_action = input()
-
+        user_action = int(input())
+        '''
         action_probability = [0 for i in range(board.num_bandits)]
         try:
             action_probability[int(user_action)] = 1
         except:
             action_probability[random.choice(actions)] = 1
-        return action_probability
+            '''
+        return user_action
 
 class Bot(Player):
 

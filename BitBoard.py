@@ -43,6 +43,7 @@ class BitBoard():
         last_row = self.high[last_col]
         index = self.get_index(col=last_col, row=last_row)
 
+        print("Undoing ", last_col, ":",last_row)
         self.set_bit(self.get_player_turn(prev=True), index, turn_on=False)
         self.moves.pop()
         self.turn -= 1
@@ -126,7 +127,7 @@ class BitBoard():
         if turn_on:
             self.boards[player] |= (1 << bit)
         else:
-            self.boards[player] &= ~(1 << (bit - 1))
+            self.boards[player] &= ~(1 << (bit))
 
     def get_last_move(self):
         if len(self.moves) > 0:
