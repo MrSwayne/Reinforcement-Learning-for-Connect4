@@ -53,6 +53,8 @@ class MCTS(Algorithm):
 
 
     def get_move(self, state, player):
+
+        #Initialise computational starts
         self.end = None
         self.current_n = 0
 
@@ -63,21 +65,15 @@ class MCTS(Algorithm):
         while self.should_continue():
             self.current_n += 1
 
-            #Selection
             node = self.select_node()
 
-            #Expansion
             if not node.state.game_over and node.visit_count != 0:
                 node = self.expand(node)
 
-            #Simulation
             winner = self.simulation(node)
 
-
-            #Backpropagation
             self.backpropagate(node, winner)
 
-         #   print(self.root, "->", self.root.children)
         return self.child_policy(self.root).prev_action
 
     def select_node(self):
@@ -86,6 +82,9 @@ class MCTS(Algorithm):
         #Go until leaf node
         while (len(node.children) != 0):
             node = self.tree_policy(node)
+
+        if node.get_state() not in self.tree_data:
+            self.tree_data[node.get_state()] = (node.score, node.visit_count)
 
         return node
 
@@ -100,8 +99,6 @@ class MCTS(Algorithm):
     def simulation(self, node):
 
         winner = node.state.check_win()
-        if(isinstance(winner, type(self.root.player)) and winner is not self.root.player):
-            node.parent.score = -2147483647
 
         terminal_state = self.rollout_policy(node.state)
 
@@ -110,11 +107,14 @@ class MCTS(Algorithm):
     def backpropagate(self, node, winner):
 
         #default MCTS
+
+       # next_value
         while node.parent is not None:
             if node.player == winner:
                 node.score += 1
             node.visit_count += 1
-         #   self.tree_data[node.get_state()] = (node.score, node.visit_count)
+
+            self.tree_data[node.get_state()] = (node.score, node.visit_count)
             node = node.parent
 
         '''
@@ -160,7 +160,6 @@ class MCTS(Algorithm):
         max_score = float('-inf')
 
         best_children = []
-        scores = []
 
         for child in node.children:
             pvc = node.visit_count
@@ -169,13 +168,9 @@ class MCTS(Algorithm):
 
             if cvc == 0:
                 score = float('inf')
-
-
             else:
               #  cs = (cs - node.upper_bound) / (node.upper_bound - node.lower_bound) + 1
 
-
-              #  print(node, "->", node.children)
                 score = cs / cvc + (self.e * math.sqrt(math.log(pvc) / cvc))
 
             if score > max_score:
@@ -183,7 +178,6 @@ class MCTS(Algorithm):
                 max_score = score
             if score >= max_score:
                 best_children.append(child)
-            scores.append(score)
 
         return random.choice(best_children)
 
@@ -220,9 +214,11 @@ class MCTS(Algorithm):
 
         state = node.get_state()
 
-      #  if state in self.tree_data:
-       #     node.score, node.visit_count = self.tree_data[state]
-          #  print("Loading:", "\t", node.score, "\t", node.visit_count)
+        if state in self.tree_data:
+            node.score, node.visit_count = self.tree_data[state]
+       #     if state == (0,0):
+       #         print("Loading: ", node.score, "->", node.visit_count)
+
         return node
 
 

@@ -5,6 +5,7 @@ import Game as Game
 from datetime import timedelta
 import Algorithm as algo
 import math
+import GameGUI as GUI
 #import NeuralNet as NN
 
 #players = [Bot("blue", algo.MCTS(duration=timedelta(seconds=2), train=True)), Bot("Red", algo.Minimax(max_depth=4))]
@@ -14,13 +15,14 @@ import math
 #neural_net1 = NN.NeuralNet("m1")
 #neural_net2 = NN.NeuralNet("m2")
 
-players = [Bot("blue",algorithm=algo.MCTS(n=700, e=math.sqrt(2))), Bot("red",algorithm=algo.MCTS(n=2000, e=math.sqrt(2)))]# Bot("Red", algorithm=algo.MCTS(n=2000, e=1.414, g=0.5))]
-n = 5
+players = [ Bot("Green", algorithm=algo.MCTS(duration=timedelta(seconds=3), e=math.sqrt(2), memory=True)), Bot("red",algorithm=algo.MCTS(duration=timedelta(seconds=3), e=math.sqrt(2), memory=True))]
+n = 100
 
 t0 = time.clock()
 
 
-completed_games, new_states = Game.simulation(players, num_episodes=n, _print=True)
+
+completed_games, new_states = Game.simulation(players, num_episodes=n, _print=False)
 t1 = time.clock()
 
 winner = Game.print_results(completed_games)

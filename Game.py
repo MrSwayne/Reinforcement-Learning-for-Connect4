@@ -35,7 +35,7 @@ def load_tree_data():
 
             if len(row) == 4:
                 try:
-                    table[row[0], row[1]] = (float(row[2]), float(row[3]))
+                    table[int(row[0]), int(row[1])] = (float(row[2]), float(row[3]))
                 except:
                     continue
     return table
@@ -97,13 +97,14 @@ def simulation(players, num_episodes=10, _print=False):
     state = create_board(players)
 
     tree_data = load_tree_data()
-    value_function = load_value_function()
+    winners = {}
     for p in players:
+        winners[p] = 0
         if isinstance(p.algorithm, algo.MCTS):
-            if p.algorithm.memory == True:
+            if p.algorithm.memory:
                 p.algorithm.tree_data = tree_data
 
-    winners = {}
+
     alpha = 0.8
     gamma = 0.9
 
@@ -113,6 +114,7 @@ def simulation(players, num_episodes=10, _print=False):
 
         state.reset()
 
+        winner = None
         while not state.game_over:
 
             if _print:
@@ -122,8 +124,8 @@ def simulation(players, num_episodes=10, _print=False):
 
             action = player.get_choice(state)
 
-            if isinstance(player.algorithm, algo.MCTS):
-                print(player, "\t",player.algorithm.root, "->", player.algorithm.root.children)
+      #      if isinstance(player.algorithm, algo.MCTS):
+      #          print(player, "\t",player.algorithm.root, "->", player.algorithm.root.children)
 
             player_state, state_mask = state.get_state(player)
             # old_states = np.vectorize(np.binary_repr)(np.array([[player_state, state_mask]]), 64)
@@ -176,13 +178,29 @@ def simulation(players, num_episodes=10, _print=False):
 
         if winner in winners:
             winners[winner] += 1
-        else:
-            winners[winner] = 0
         if _print:
             state.print()
 
-        if ((i + 1) % 4 == 0 or i == num_episodes - 1) and isinstance(p.algorithm, algo.MCTS):
+        if ((i + 1) % 20 == 0 or i == num_episodes - 1):
             save_tree_data(tree_data)
+            '''
+            best_player = None
+            best_count = 0
+            for winner, count in winners.items():
+                if isinstance(winner.algorithm, algo.MCTS):
+                    if count >= best_count:
+                        best_player = winner
+                        best_count = count
+
+            if best_player is not None and not 0:
+                print("saving: ", best_player)
+                save_tree_data(best_player.algorithm.tree_data)
+            for player in players:
+                if player == best_player:
+                    continue
+                if isinstance(winner.algorithm, algo.MCTS) and player.algorithm.memory:
+                    player.algorithm.tree_data = load_tree_data()
+            '''
         completed_games.append(deepcopy(state))
 
         if (winner == 0):
@@ -207,7 +225,10 @@ def get_reward(player, winner):
 def manual(players, sequence):
     completed_games = []
     state = create_board(players)
-    bools = state.placeSequence(sequence)
+    bools = []
+    for move in sequence:
+        bools.append(state.place(move))
+
     state.print()
     for i in range(len(state.moves)):
         print("Move: {0}\t{1}".format(state.moves[i], bools[i]))
@@ -234,7 +255,7 @@ def draw(states, width=1280, height=720):
                 done = True
             if event.type == pygame.MOUSEBUTTONDOWN:
                 break
-                print(pygame.mouse.get_pos())
+               # print(pygame.mouse.get_pos())
 
         state_offset_x = 0
         state_offset_y = 0
@@ -273,9 +294,11 @@ def draw(states, width=1280, height=720):
 
 def print_results(completed_games):
     winners = {}
-    for state in completed_games:
+    for i in range(len(completed_games)):
+        state = completed_games[i]
        # state.print()
 
+        print(i+1, end="\t")
         for p in state.players:
             print(state.get_state(p), end = ";")
         print()
