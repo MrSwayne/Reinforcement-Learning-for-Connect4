@@ -43,7 +43,7 @@ class BitBoard():
         last_row = self.high[last_col]
         index = self.get_index(col=last_col, row=last_row)
 
-        print("Undoing ", last_col, ":",last_row)
+        #print("Undoing ", last_col, ":",last_row)
         self.set_bit(self.get_player_turn(prev=True), index, turn_on=False)
         self.moves.pop()
         self.turn -= 1
@@ -55,10 +55,16 @@ class BitBoard():
         return self.boards
 
     def get_state(self, player=None):
+
         state = None
         if player is not None:
-            # Return the current player's state, and the state mask
-            return self.boards[player], self.get_state(player=None)
+            states = [self.boards[player]]
+            for p in self.players:
+                if p == player:
+                    continue
+                states.append(self.boards[p])
+
+            return tuple(states)
 
         for player, player_board in self.boards.items():
             if state is None:

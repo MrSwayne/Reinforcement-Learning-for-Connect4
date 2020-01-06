@@ -2,6 +2,62 @@ import pygame
 from Player import *
 
 
+def draw(states, width=1280, height=720):
+    pygame.init()
+    screen = pygame.display.set_mode((width, height))
+    done = False
+
+    player_colour_map = {0: (255, 255, 255)}
+
+    players = states[0].get_players()
+    for player in players:
+        player_colour_map[player] = player.get_rgb()
+
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                done = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                break
+               # print(pygame.mouse.get_pos())
+
+        state_offset_x = 0
+        state_offset_y = 0
+
+        count = 1
+        for state in states:
+
+            x_offset = 30 + state_offset_x
+            y_offset = 30 + state_offset_y
+
+            for r in range(state.rows):
+                for c in range(state.cols):
+                    #            for r in range(state.rows - 1, -1, -1):
+                    #                for c in range(0, state.cols):
+                    cell = state.get(r, c)
+
+                    try:
+                        colour = player_colour_map[cell]
+                    except:
+                        colour = player_colour_map[0]
+
+                    pygame.draw.rect(screen, colour, pygame.Rect(x_offset, y_offset, 30, 30))
+                    x_offset += 31
+                x_offset = 30 + state_offset_x
+                y_offset += 31
+            state_offset_y = y_offset + 2
+
+            if count % 3 == 0:
+                state_offset_x += 260
+                state_offset_y = 0
+
+            count += 1
+
+        pygame.display.flip()
+
+
+
 def play(board):
 
 

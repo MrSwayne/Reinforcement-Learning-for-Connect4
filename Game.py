@@ -26,63 +26,29 @@ def load_tree_data():
         f.close()
 
     with open(tree_path, 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=';')
+        reader = csv.reader(csvfile, delimiter=',')
         headers = True
         for row in reader:
             if headers:
                 headers = False
                 continue
 
-            if len(row) == 4:
+            if len(row) == 5:
                 try:
-                    table[int(row[0]), int(row[1])] = (float(row[2]), float(row[3]))
+                    table[int(row[0]), int(row[1])] = (float(row[2]), float(row[3]), float(row[4]))
                 except:
                     continue
     return table
-
-
-def load_value_function():
-    table = {}
-    if not os.path.isfile(value_path):
-        f = open(value_path, "w+")
-        f.close()
-
-    with open(value_path, 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=';')
-        headers = True
-        for row in reader:
-            if headers:
-                headers = False
-                continue
-
-            if len(row) == 3:
-                try:
-                    table[row[0], row[1]] = float(row[2])
-                except:
-                    continue
-    return table
-
-
-def save_value_function(table):
-    if not os.path.isfile(tree_path):
-        f = open(value_path, "r+")
-        f.close()
-    with open(value_path, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=';')
-        writer.writerow(["state", "mask", "value"])
-        for state, value in table.items():
-            writer.writerow([state[0], state[1], value])
-
 
 def save_tree_data(table):
     if not os.path.isfile(tree_path):
         f = open(tree_path, "r+")
         f.close()
     with open(tree_path, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=';')
-        writer.writerow(["state", "mask", "score", "visit count"])
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(["state", "mask", "score", "visit count", "V"])
         for state, node in table.items():
-            writer.writerow([state[0], state[1], node[0], node[1]])
+            writer.writerow([state[0], state[1], node[0], node[1], node[2]])
 
 
 class _State:
@@ -181,7 +147,7 @@ def simulation(players, num_episodes=10, _print=False):
         if _print:
             state.print()
 
-        if ((i + 1) % 20 == 0 or i == num_episodes - 1):
+        if ((i + 1) % 5 == 0 or i == num_episodes - 1):
             save_tree_data(tree_data)
             '''
             best_player = None
@@ -207,6 +173,7 @@ def simulation(players, num_episodes=10, _print=False):
             print("DRAW!")
         else:
             print(winner, " Won!")
+            #state.print()
 
     return completed_games, 0
 
@@ -235,61 +202,6 @@ def manual(players, sequence):
     completed_games.append(state)
     print(state.get_player_turn())
     return completed_games
-
-
-def draw(states, width=1280, height=720):
-    pygame.init()
-    screen = pygame.display.set_mode((width, height))
-    done = False
-
-    player_colour_map = {0: (255, 255, 255)}
-
-    players = states[0].get_players()
-    for player in players:
-        player_colour_map[player] = player.get_rgb()
-
-    while not done:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                done = True
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                break
-               # print(pygame.mouse.get_pos())
-
-        state_offset_x = 0
-        state_offset_y = 0
-
-        count = 1
-        for state in states:
-
-            x_offset = 30 + state_offset_x
-            y_offset = 30 + state_offset_y
-
-            for r in range(state.rows):
-                for c in range(state.cols):
-                    #            for r in range(state.rows - 1, -1, -1):
-                    #                for c in range(0, state.cols):
-                    cell = state.get(r, c)
-
-                    try:
-                        colour = player_colour_map[cell]
-                    except:
-                        colour = player_colour_map[0]
-
-                    pygame.draw.rect(screen, colour, pygame.Rect(x_offset, y_offset, 30, 30))
-                    x_offset += 31
-                x_offset = 30 + state_offset_x
-                y_offset += 31
-            state_offset_y = y_offset + 2
-
-            if count % 3 == 0:
-                state_offset_x += 260
-                state_offset_y = 0
-
-            count += 1
-
-        pygame.display.flip()
 
 
 def print_results(completed_games):

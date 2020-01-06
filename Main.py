@@ -2,6 +2,7 @@
 from Player import *
 import time
 import Game as Game
+import GameGUI as GUI
 from datetime import timedelta
 import Algorithm as algo
 import math
@@ -15,12 +16,10 @@ import GameGUI as GUI
 #neural_net1 = NN.NeuralNet("m1")
 #neural_net2 = NN.NeuralNet("m2")
 
-players = [ Bot("Green", algorithm=algo.MCTS(duration=timedelta(seconds=3), e=math.sqrt(2), memory=True)), Bot("red",algorithm=algo.MCTS(duration=timedelta(seconds=3), e=math.sqrt(2), memory=True))]
-n = 100
+players = [Bot("red", algorithm=algo.MCTS(n=500, e=1, memory=True)), Bot("yellow",algorithm=algo.MCTS(n=500, e=1, memory=True))]
+n = 15
 
 t0 = time.clock()
-
-
 
 completed_games, new_states = Game.simulation(players, num_episodes=n, _print=False)
 t1 = time.clock()
@@ -32,4 +31,4 @@ most_moves = 0
 
 print((t1 - t0) / n, "s avg per game")
 print(new_states / n, " avg new states" )
-Game.draw(completed_games)
+GUI.draw(completed_games)
