@@ -9,11 +9,11 @@ from copy import deepcopy
 import time
 import GameGUI as GUI
 
-players = [ Human("Green"), Human("Red")]#Bot("red",algorithm=algo.MCTS(n=700, e=math.sqrt(2)))]
+players = [ Bot("YELLOW",algorithm=algo.MCTS(n=2000, e=math.sqrt(2))),Bot("red",algorithm=algo.MCTS(n=2000, e=math.sqrt(2)))]
 
 board = BitBoard(players)
-board.set_state(players[0], 180904303591687)
-board.set_state(players[1], 97238598598808)
-board.print()
-GUI.play(board)
+board.set_state(players[0], 186132378064173)
+board.set_state(players[1], 93126259722898)
+GUI.draw([board])
+#GUI.play(board, play=False)
 

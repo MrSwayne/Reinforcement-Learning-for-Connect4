@@ -12,27 +12,31 @@ class Algorithm():
         pass
 
     @abstractmethod
-    def get_move(self, state, player):
+    def get_move(self, state):
         pass
 
 class MCTS(Algorithm):
 
     path = 'state_values.csv'
 
-    def __init__(self,duration = None, depth = None, n = None, e = 1, g = 0.9, a = 0.8, memory=True):
+    def __init__(self,duration = None, depth = None, n = None, e = 1, g = 0.9, l = 1 , memory=True):
         super().__init__()
         self.e = e
         self.duration = duration
         self.depth = depth
         self.n = n
-        self.a = a
         self.end = None
-        self.g = g
+        self.gamma = g
+        self.lambd = l
         self.tree_data = {}
         self.memory = memory
         self.path = "tree_data.csv"
         self.num_new_states = 0
         self.root = None
+
+        self.MAX_REWARD = 1
+        self.MIN_REWARD = 0
+
         if not duration and not depth and not n:
             self.n = 250
 
@@ -53,7 +57,7 @@ class MCTS(Algorithm):
         return False
 
 
-    def get_move(self, state, player):
+    def get_move(self, state):
 
         #Initialise computational starts
         self.end = None
@@ -62,11 +66,15 @@ class MCTS(Algorithm):
         #Create game tree
 
         if self.root is not None:
-            for child in self.root.children:
-                if child.get_state() == state.get_state():
+            children = self.root.children
+            self.root = None
+            for child in children:
+                if child.get_state() == state.get_state(child.player):
                     self.root = child
-        else:
-            self.root = self.create_node(parent=None, action=-1, state=state, player=player)
+                    break
+
+        if self.root is None:
+            self.root = self.create_node(parent=None, action=-1, state=state, player=state.get_player_turn())
 
         #Based on initial conditions like time per turn, or X amount of simulations etc.
         while self.should_continue():
@@ -77,20 +85,13 @@ class MCTS(Algorithm):
             if not node.state.game_over and node.visit_count != 0:
                 node = self.expand(node)
 
-            winner, num_steps = self.simulation(node)
+            reward, num_steps = self.simulation(node)
 
-            self.backpropagate(node, winner, num_steps)
+            self.backpropagate(node, reward, num_steps)
 
-      #  print(self.root.children)
         best_child = self.child_policy(self.root)
-        print(self.root.children, "\t", best_child)
-
+    #    print(self.root.children, "\t", best_child.prev_action, "\t")
         self.root = best_child
-
-
-     #   print(self.root.children)
-        if best_child.state.game_over:
-            self.root = None
 
         return best_child.prev_action
 
@@ -102,13 +103,13 @@ class MCTS(Algorithm):
             node = self.tree_policy(node)
 
         if node.get_state() not in self.tree_data:
-            self.tree_data[node.get_state()] = (node.score, node.visit_count, node.V)
+            self.tree_data[node.get_state()] = (node.visit_count, node.V)
 
         return node
 
     def expand(self, node):
         for action in node.state.get_actions():
-            child = self.create_node(parent=node, state=node.state, action=action, player=node.state.get_player_turn())
+            child = self.create_node(parent=node, state=node.state, action=action)
             node.children.append(child)
 
         return self.tree_policy(node)
@@ -119,77 +120,96 @@ class MCTS(Algorithm):
         terminal_state, num_steps = self.rollout_policy(node.state)
         reward = self.reward(node, terminal_state)
 
+        if num_steps == -1:
+            node.print(True)
+            print(node.player)
+            node.state.print()
+            terminal_state.print()
+            print(terminal_state.winner)
+            print(reward)
         return reward, num_steps
 
     def backpropagate(self, node, reward, num_steps):
-        #default
-        '''
-        while node.parent is not None:
-            if node.player == winner:
-                node.score += 1
-            node.visit_count += 1
-
-            self.tree_data[node.get_state()] = (node.score, node.visit_count)
-            node = node.parent
-        '''
 
         #default
         child_map = {}
 
-        if node.state.game_over:
-            node.V = reward
+      #  print("Backpropagating ", node.player, " : ", reward)
+     #   node.print(backwards=True)
+        temp = node
+        player = node.player
 
-        for p in node.state.players:
-            child_map[p] = None
+        td_error = (self.gamma ** (num_steps - 1)) * reward - node.V
+        eligibility_trace = 1
+        temp = node
 
-        while node.parent is not None:
+        while node is not None:
+            td_error *= -1
             node.visit_count += 1
-            if child_map[node.player] is not None:
-                alpha = 1 / node.visit_count
-                node.V = node.V + alpha * (self.reward(child_map[node.player], node.state) + ((self.g**(num_steps + node.depth - self.root.depth)) * child_map[node.player].V) - node.V)
-                num_steps -= 1
-            child_map[node.player] = node
 
-          #  node.score += reward
+            alpha = 1 / node.visit_count
+            node.V = node.V + alpha * eligibility_trace * td_error
+            eligibility_trace = eligibility_trace * self.gamma * self.lambd
 
-            self.tree_data[node.get_state()] = (node.score, node.visit_count, node.V)
+            self.tree_data[node.get_state()] = (node.visit_count, node.V)
+
             node = node.parent
+
+
         '''
-        #RL
         while node.parent is not None:
             node.visit_count += 1
-            node.score += reward
-            self.tree_data[node.get_state()] = (node.score, node.visit_count)
+            alpha = 1 / (1 + node.visit_count)
+            node.V = node.V + alpha * (reward - node.V)
+            reward *= -1
             node = node.parent
- 
-        node.visit_count += 1
+
+            if child_map[node.player] is None:
+                child_map[node.player] = node
+                child = node
+    #    temp = node
+                reward = 0
+            else:
+                child = child_map[node.player]
+                reward = self.reward(child, child.state)
 
 
-        alpha = 1 / node.visit_count
-        node.score = node.score + alpha * (reward)
-        self.tree_data[node.get_state()] = (node.score, node.visit_count)
-        while node.parent is not None:
-            node.parent.visit_count += 1
 
-            #Learning Rate inversely proportional to amount of visits of the state, more visits = smaller update step
-            alpha = 1 / node.parent.visit_count
-            node.parent.score = node.parent.score + alpha * (reward + self.g *node.score - node.parent.score)
-            self.tree_data[node.parent.get_state()] = (node.parent.score, node.parent.visit_count)
-            if node.parent.upper_bound < node.score:
-                node.parent.upper_bound = node.score
-            if node.parent.lower_bound > node.score:
-                node.parent.lower_bound = node.score
+
+            child = child_map[node.player]
+            reward = self.reward(child, child.state)
+
+            alpha = 1 / (1 + node.visit_count)
+       #     print("OLD:", node.V, "<-", node.player)
+
+            discount_factor = self.g ** (num_steps)
+            node.V = node.V + alpha * (reward + ((discount_factor * child.V) - node.V))
+            num_steps += 1
+       #     print("NEW:", node.V)
+
+            self.tree_data[node.get_state()] = (node.visit_count, node.V)
+            child_map[node.player] = node
             node = node.parent
+        
+       # print()
+       
     '''
+       # temp.print(True)
 
-    def reward(self, node, state):
-        check_win = state.check_win()
-        if check_win == node.player:
-            return 1.0
-        elif int(check_win) <= 0:
-            return 0
+    def reward(self,node, state):
+        if not state.game_over:
+            check_win = state.check_win()
         else:
-            return -1.0
+            check_win = state.winner
+
+        if int(check_win) == -1:
+            return 0
+        if int(check_win) == int(node.player):
+            return self.MIN_REWARD
+        elif int(check_win) == 0:
+            return (self.MAX_REWARD + self.MIN_REWARD) / 2
+        else:
+            return self.MAX_REWARD
 
 
     #UCB
@@ -206,9 +226,9 @@ class MCTS(Algorithm):
             if cvc == 0:
                 score = float('inf')
             else:
-              #  cs = (cs - node.upper_bound) / (node.upper_bound - node.lower_bound) + 1
+               # cs = (node.V - node.upper_bound) / (node.upper_bound - node.lower_bound) + 1
 
-                score = node.V + (self.e * math.sqrt(math.log(pvc) / cvc))
+                score = child.V + 2 * (self.e * math.sqrt(2 * math.log(pvc) / cvc))
 
             if score > max_score:
                 best_children = []
@@ -232,37 +252,33 @@ class MCTS(Algorithm):
         return temp_state, count
 
     def child_policy(self, node):
-        most_visits = float("-inf")
+        highest_val = float("-inf")
         best_child = None
 
         for child in node.children:
-            if child.V >= most_visits:
-                most_visits = child.V
+            if child.V >= highest_val:
+                highest_val = child.V
                 best_child = child
         return best_child
 
+    def create_dummy_node(self, parent=None):
+        return Node(parent=parent, state=None, player=None, prev_action=None, depth=-1)
 
     def create_node(self, parent=None, action=-1, state=None, player=None):
 
         if parent is None:
-            dummy_node = Node(parent=None, state=None, player=None, prev_action=None, depth=-1)
-            node = Node(parent=dummy_node, state=state, player=player, prev_action=action, depth=0)
+            node = Node(parent=None, state=state, player=player, prev_action=action, depth=0)
         else:
             temp_board = deepcopy(parent.state)
+
             temp_board.place(action)
+            player = temp_board.get_player_turn()
             node = (Node(parent=parent, state=temp_board, player=player, prev_action=action, depth=parent.depth + 1))
 
         _state = node.get_state()
 
-
-       # if state.game_over:
-      #      node.V = self.reward(node, state)
-     #   else:
-        #    node.V = 0.5
-
         if _state in self.tree_data:
-            node.score, node.visit_count, node.V = self.tree_data[_state]
-
+            node.visit_count, node.V = self.tree_data[_state]
 
 
         return node
@@ -278,23 +294,30 @@ class Node:
         self.player = player
         self.prev_action = prev_action
         self.depth = depth
-        self.tag = str(depth) + "_" + str(prev_action)
-        self.upper_bound = 1
-        self.lower_bound = 0
 
+        self.tag = str(depth) + "_" + str(prev_action)
         self.V = 0.5
 
     def get_state(self):
-        board, mask = self.state.get_state(self.player)
-        return (board, mask)
+        return self.state.get_state()
 
     def __repr__(self):
-        return "{" + str(self.prev_action) + ","  + (str(round(self.V, 4))) + str(self.visit_count)+ "}"
+        return "{" + str(self.depth) + "__" + str(self.prev_action) + ","  + (str(round(self.V, 4))) + "," + str(self.visit_count)+ "," +  str(self.player) + "}"
 
-    def print(self):
-        print(repr(self), "->", self.children)
-        for child in self.children:
-            child.print()
+    def print(self, backwards=False):
+
+        if backwards:
+            temp_node = self
+            list = []
+            while(temp_node is not None):
+                list.append(temp_node)
+                temp_node = temp_node.parent
+
+            print(list)
+        else:
+            print(repr(self), "->", self.children)
+            for child in self.children:
+                child.print()
 
 
 
@@ -303,7 +326,7 @@ class Random(Algorithm):
     def __init__(self):
         super().__init__()
 
-    def get_move(self, state, player):
+    def get_move(self, state):
         choice = random.choice(state.get_actions())
 
         return choice
@@ -316,8 +339,8 @@ class Minimax(Algorithm):
         super().__init__()
         self.depth = max_depth
 
-    def get_move(self, state, player):
-        self.player = player
+    def get_move(self, state):
+        self.player = state.get_player_turn()
         return self.minimax(state)
 
     def minimax(self, board, depth=0):

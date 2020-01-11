@@ -72,4 +72,4 @@ class Bot(Player):
         self.neural_net = neural_net
 
     def get_choice(self, board):
-        return self.algorithm.get_move(state=board, player=self)
+        return self.algorithm.get_move(state=board)

@@ -22,7 +22,7 @@ class BitBoard():
         self.turn = 0
         self.game_over = False
         self.moves = []
-
+        self.winner = -1
 
         self.high = []
         for i in range(self.cols):
@@ -56,7 +56,7 @@ class BitBoard():
 
     def get_state(self, player=None):
 
-        state = None
+
         if player is not None:
             states = [self.boards[player]]
             for p in self.players:
@@ -64,14 +64,14 @@ class BitBoard():
                     continue
                 states.append(self.boards[p])
 
+            states.append(int(self.get_player_turn()))
             return tuple(states)
 
+        states = []
         for player, player_board in self.boards.items():
-            if state is None:
-                state = player_board
-            else:
-                state ^= player_board
-        return state
+            states.append(player_board)
+        states.append(int(self.get_player_turn()))
+        return tuple(states)
 
     def reset(self):
         for p in self.players:
@@ -129,7 +129,6 @@ class BitBoard():
 
     def set_bit(self, player, bit, turn_on=True):
 
-
         if turn_on:
             self.boards[player] |= (1 << bit)
         else:
@@ -150,12 +149,10 @@ class BitBoard():
         return bools
 
     def place(self, col):
-
         if not self.game_over:
             if self.high[col] > 0:
                 row = self.high[col] - 1
                 bit = self.get_index(row=row, col=col)
-
                 self.set_bit(self.get_player_turn(), bit)
                 self.high[col] -= 1
                 self.turn += 1
@@ -210,11 +207,15 @@ class BitBoard():
             # If after the board is shifted and logical AND'ed together >= 1, that means there is 4 in a row
             if m:
                 self.game_over = True
+                self.winner = player_to_check
                 return player_to_check
 
         # If there are no actions, then it's a draw
         if (len(self.get_actions()) == 0):
             self.game_over = True
+            self.winner = 0
             return 0
         # Game is on going
+        self.winner = -1
+        self.game_over = False
         return -1

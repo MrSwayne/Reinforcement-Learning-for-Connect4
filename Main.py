@@ -16,10 +16,11 @@ import GameGUI as GUI
 #neural_net1 = NN.NeuralNet("m1")
 #neural_net2 = NN.NeuralNet("m2")
 
-players = [Bot("red", algorithm=algo.MCTS(n=500, e=1, memory=True)), Bot("yellow",algorithm=algo.MCTS(n=500, e=1, memory=True))]
-n = 15
 
+players = [Bot("YELLOW",algorithm=algo.MCTS(duration=timedelta(seconds=2), e=1.414, memory=True)), Bot("RED", algorithm=algo.MCTS(duration=timedelta(seconds=2), e=1.414, memory=True))]
+n = 10
 t0 = time.clock()
+
 
 completed_games, new_states = Game.simulation(players, num_episodes=n, _print=False)
 t1 = time.clock()

@@ -13,6 +13,7 @@ def draw(states, width=1280, height=720):
     for player in players:
         player_colour_map[player] = player.get_rgb()
 
+
     while not done:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -22,14 +23,17 @@ def draw(states, width=1280, height=720):
                 break
                # print(pygame.mouse.get_pos())
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    pass
         state_offset_x = 0
         state_offset_y = 0
 
         count = 1
         for state in states:
 
-            x_offset = 30 + state_offset_x
-            y_offset = 30 + state_offset_y
+            x_offset = 15 + state_offset_x
+            y_offset = 15 + state_offset_y
 
             for r in range(state.rows):
                 for c in range(state.cols):
@@ -44,7 +48,7 @@ def draw(states, width=1280, height=720):
 
                     pygame.draw.rect(screen, colour, pygame.Rect(x_offset, y_offset, 30, 30))
                     x_offset += 31
-                x_offset = 30 + state_offset_x
+                x_offset = 15 + state_offset_x
                 y_offset += 31
             state_offset_y = y_offset + 2
 
@@ -85,13 +89,13 @@ def play(board):
         action = None
         player = board.get_player_turn()
 
-        if isinstance(player, Human):
-            human_turn = True
-        else:
-            human_turn = False
-            action = player.get_choice(board)
+        if not board.game_over:
+            if isinstance(player, Human):
+                human_turn = True
+            else:
+                human_turn = False
+                action = player.get_choice(board)
 
-                #print(x,"\t", y)
 
         x_offset = init_offset_x
         y_offset = init_offset_y
