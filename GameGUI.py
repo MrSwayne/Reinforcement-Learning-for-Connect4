@@ -1,5 +1,40 @@
 import pygame
 from Player import *
+from Algorithms.MCTS import *
+
+def drawGraph(screen, font, node, width, height, depth=0, max_depth=4):
+    if depth == max_depth + 1:
+      #  print()
+        return
+
+
+   # print(depth, "\t", node.value, "..", width)
+    W = width[1] - width[0]
+
+    current_width = int(W/2 + width[0])
+
+
+    for i in range(len(node.children)):
+        child = node.children[i]
+
+        w1 = (i  / len(node.children) * W) + width[0]
+        w2 = ((i+1)      / len(node.children) * W) + width[0]
+
+        new_height = height + 50
+        new_width = (w1,w2)
+        drawGraph(screen, font, child, new_width, new_height, depth + 1)
+
+        pygame.draw.line(screen, (126,126,126), (current_width, height), ((w2 - w1) / 2 + w1, new_height), 4)
+
+     #  pygame.draw.circle(screen, (126, 126, 126), (current_width, height), 15)
+
+    valueText = font.render("V: " + str(round(node.V, 3)), True, (255,255,255))
+    visitText = font.render("N: " + str(round(node.visit_count, 3)), True, (255,255,255))
+
+    circle = pygame.Rect(current_width - 7.5, height - 7.5, 15, 15)
+    pygame.draw.circle(screen, (255, 0, 0), circle.center, 7)
+    screen.blit(valueText, (circle.centerx - circle.width / 2 + 10, circle.centery - circle.height / 2 + 30))
+    screen.blit(visitText, (circle.centerx - circle.width / 2 + 10, circle.centery - circle.height / 2 + 40))
 
 
 def draw(states, width=1280, height=720):
@@ -62,8 +97,9 @@ def draw(states, width=1280, height=720):
 
 
 
-def play(board):
-
+def play(board, simulation=False):
+    W = 1280 + 500
+    H = 720
 
     block_size = 50
     pygame.init()
@@ -74,27 +110,31 @@ def play(board):
 
     buttons = ["Reset"]
 
-
-
-
-
-    screen = pygame.display.set_mode((400, 800))
+    screen = pygame.display.set_mode((W, H))
     done = False
 
     init_offset_x = 30
     init_offset_y = 30
 
     board_map = {}
+
+    prev_turn = None
     while not done:
+
+        screen.fill((0,0,0))
+
+
+        if simulation and board.game_over:
+            return board
         action = None
-        player = board.get_player_turn()
+        player_turn = board.get_player_turn()
 
         if not board.game_over:
-            if isinstance(player, Human):
+            if isinstance(player_turn, Human):
                 human_turn = True
             else:
                 human_turn = False
-                action = player.get_choice(board)
+                action = player_turn.get_choice(board)
 
 
         x_offset = init_offset_x
@@ -124,18 +164,21 @@ def play(board):
             x_offset = init_offset_x
             y_offset += block_size + 1
 
+
         clock_box = pygame.Rect(init_offset_x, init_offset_y - 25, 60, 20)
         reset_button = pygame.Rect(x_offset, y_offset + 15, 80, 30)
         reset_text = font.render("Reset", True, Player.colours["WHITE"])
-        pygame.display.update()
 
 
-        player_turn_text = font.render(str(player) + "'s turn!", True, Player.colours[str(player)])
-        print(str(player))
+        player_turn_text = font.render(str(player_turn) + "'s turn!", True, Player.colours[str(player_turn)])
+
 
         pygame.draw.rect(screen, Player.colours["AQUA"], clock_box)
         pygame.draw.rect(screen, Player.colours["AQUA"], reset_button)
+
+
         screen.blit(reset_text, (reset_button.centerx - reset_button.width / 2 + 10, reset_button.centery - reset_button.height / 2 + 5))
+        prev_turn = player_turn
         screen.blit(player_turn_text, (init_offset_x + clock_box.width + 10, init_offset_y - 25))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -155,10 +198,13 @@ def play(board):
                     except:
                         continue
 
-
-
-
         if action is not None:
             board.place(action)
             player = board.get_player_turn()
+
+        graph_font = pygame.font.SysFont("microsoftsansserif",12)
+        for p in players:
+            if isinstance(p.algorithm, MCTS):
+                if p.algorithm.root is not None:
+                    drawGraph(screen=screen, font=graph_font,node=p.algorithm.root, width=(x_offset + block_size * board.rows + 70, W - 100), height=30)
         pygame.display.flip()

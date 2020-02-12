@@ -43,6 +43,10 @@ class Player():
     def get_rgb(self):
         return self.colours[self.colour]
 
+    @abstractmethod
+    def save(self):
+        pass
+
 import random
 class Human(Player):
 
@@ -54,22 +58,22 @@ class Human(Player):
         board.print()
         print("Select from: ", actions , end=": ")
         user_action = int(input())
-        '''
-        action_probability = [0 for i in range(board.num_bandits)]
-        try:
-            action_probability[int(user_action)] = 1
-        except:
-            action_probability[random.choice(actions)] = 1
-            '''
         return user_action
 
 class Bot(Player):
 
-    def __init__(self, colour, algorithm, neural_net = None):
+    def __init__(self, colour, algorithm, memory=None):
         Player.__init__(self, colour)
         self.best_choice = -1
         self.algorithm = algorithm
-        self.neural_net = neural_net
+        self.memory = memory
+
+        if memory is not None:
+            self.algorithm.load_data(memory + ".csv")
 
     def get_choice(self, board):
         return self.algorithm.get_move(state=board)
+
+    def save(self, tag = ""):
+        if self.memory is not None:
+            self.algorithm.save_data(self.memory + tag + ".csv")
