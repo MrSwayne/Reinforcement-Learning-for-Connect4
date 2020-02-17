@@ -1,6 +1,4 @@
 from abc import abstractmethod
-import Algorithm as algo
-
 class Player():
     num_players = 0
 
@@ -74,6 +72,16 @@ class Bot(Player):
     def get_choice(self, board):
         return self.algorithm.get_move(state=board)
 
+
+    def setLearning(self, on=True):
+        self.algorithm.learning = on
+
+    def load(self, path = None):
+        if path is None:
+            self.algorithm.load_data(self.memory + ".csv")
+        else:
+            self.algorithm.load_data(path + ".csv")
+
     def save(self, tag = ""):
-        if self.memory is not None:
+        if self.memory:
             self.algorithm.save_data(self.memory + tag + ".csv")

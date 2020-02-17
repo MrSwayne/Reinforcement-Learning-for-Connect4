@@ -6,53 +6,19 @@ import csv
 
 class MCTS(Algorithm):
 
-    def save_data(self, path):
-        print("Saving data now.")
 
-        if not os.path.isdir(self.get_name()):
-            os.makedirs(self.get_name())
-
-        if not os.path.isfile(self.get_name() + "/" + path):
-            f = open(self.get_name() + "/" + path, "w+")
-            f.close()
-        with open(self.get_name() + "/" + path, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',')
-            writer.writerow(["state", "state", "turn", "visit count", "score"])
-            for state, node in self.tree_data.items():
-                writer.writerow([state[0], state[1], state[2], node[0], node[1], node[2] ])
-        print("Completed writing : ", len(self.tree_data), " rows")
-
-    def load_data(self, path):
-        print("Loading Tree data")
-        self.tree_data = {}
-
-        if not os.path.isdir(self.get_name()):
-            os.makedirs(self.get_name())
-
-        if not os.path.isfile(self.get_name() + "/" + path):
-            f = open(self.get_name() + "/" + path, "w+")
-            f.close()
-
-        with open(self.get_name() + "/" + path, 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            headers = True
-            for row in reader:
-                if headers:
-                    headers = False
-                    continue
-
-                try:
-                    self.tree_data[tuple([int(row[0]), int(row[1]), int(row[2])])] = (int(row[3]), float(row[4]), float(row[5]))
-                except Exception as e:
-                    print(e)
-                    print("error loading row: ", row)
-        print("Succesfully loaded data, length: ", len(self.tree_data))
-
+    def get_values(self):
+        list = {}
+        if self.root is None:
+            return list
+        for child in self.root.children:
+            list[child.prev_action] = child.V
+        return list
 
     def get_name(self):
         return "MCTS"
 
-    def __init__(self, duration=None, depth=None, n=2000, e=1, g=0.9, l=1, debug=False):
+    def __init__(self, duration=None, depth=None, n=1000, e=0.3, g=0.9, l=1, debug=False):
         super().__init__()
         self.e = e
         self.duration = duration
@@ -87,8 +53,7 @@ class MCTS(Algorithm):
         return False
 
     def get_move(self, state):
-
-        # Initialise computational starts
+      # Initialise computational starts
         self.end = None
         self.current_n = 0
 
@@ -108,6 +73,12 @@ class MCTS(Algorithm):
         # If tree has not been initialised previously, or it couldn't find the opponent's move, the tree is discarded
         if self.root is None:
             self.root = self.create_node(parent=None, action=-1, state=state, player=state.get_player_turn())
+            best_node = self.create_node()
+            best_node.V = float("-inf")
+            worst_node = self.create_node()
+            worst_node.V = float("inf")
+            self.root.best_node = best_node
+            self.root.worst_node = worst_node
 
         # Based on initial conditions like time per turn, or X amount of simulations etc.
         while self.should_continue():
@@ -146,21 +117,16 @@ class MCTS(Algorithm):
     def simulation(self, node):
         terminal_state, num_steps = self.rollout_policy(node.state)
         reward = self.reward(node, terminal_state)
-
-        if num_steps < -3 and reward > 0:
-            node.state.print()
-            print(reward, num_steps)
-            terminal_state.print()
         return reward, num_steps
 
     def expand(self, node):
         for action in node.state.get_actions():
             child = self.create_node(parent=node, state=node.state, action=action)
 
-            if child.V > node.upper_bound:
-                node.upper_bound = child.V
-            if child.V < node.lower_bound:
-                node.lower_bound = child.V
+            if node.best_child == None or child.V > node.best_child.V:
+                node.best_child = child
+            if node.worst_child == None or child.V < node.worst_child.V:
+                node.worst_child = child
 
             node.children.append(child)
 

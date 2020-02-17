@@ -50,10 +50,12 @@ class MCTS_TDUCT(MCTS):
 
             if cvc == 0:
                 score = float('inf')
-            else:
-                normalised_score = (child.V - node.upper_bound) / ((node.upper_bound - node.lower_bound) + 1)
-                score = normalised_score + 2 * (self.e * math.sqrt(2 * math.log(pvc) / cvc))
 
+            else:
+                normalised_score = (child.V - node.best_child.V) / ((node.best_child.V - node.worst_child.V) + 1)
+                score = normalised_score + self.e * math.sqrt(math.log(pvc) / cvc)
+                #score = node.V + 2* (self.e * math.sqrt(2 * math.log(pvc) / cvc))
+                #print(score, "....", normalised_score, "......", child.V, "-", child.visit_count)
             if score > max_score:
                 best_children = []
                 max_score = score
@@ -84,6 +86,9 @@ class MCTS_TDUCT(MCTS):
                 best_child = child
         return best_child
 
+    def save_data(self, path):
+        super().save_data(path)
+
     def backpropagate(self, node, reward, num_steps):
 
         td_error = (self.gamma ** (num_steps)) * reward - node.V
@@ -96,10 +101,10 @@ class MCTS_TDUCT(MCTS):
             node.V = node.V + alpha * (td_error) * self.gamma
 
             if node.parent is not None:
-                if node.V > node.parent.upper_bound:
-                    node.parent.upper_bound = node.V
+                if node.V > node.parent.best_child.V:
+                    node.parent.best_child = node
                 if node.V < node.parent.lower_bound:
-                    node.parent.lower_bound = node.V
+                    node.parent.worst_child = node
 
             self.tree_data[node.get_state()] = (node.visit_count, node.score, node.V)
 

@@ -9,6 +9,7 @@ class Algorithm():
 
 
     def __init__(self):
+        self.learning = True
         pass
 
     @abstractmethod
@@ -27,8 +28,13 @@ class Algorithm():
     def get_name(self):
         pass
 
+    @abstractmethod
+    def get_values(self):
+        pass
+
 
 class Node:
+
     def __init__(self, parent, state, player, prev_action, depth=0):
         self.children = []
         self.parent = parent
@@ -39,22 +45,23 @@ class Node:
         self.prev_action = prev_action
         self.depth = depth
 
-        self.upper_bound = 0
-        self.lower_bound = 0
-
+        self.best_child = None
+        self.worst_child = None
         self.tag = str(depth) + "_" + str(prev_action)
 
-        if state.game_over:
+        if state is not None and state.game_over:
             self.V = 0
         else:
             self.V = 0.5
 
     def get_state(self):
+        if self.state is None:
+            return None
         return self.state.get_state()
 
     def __repr__(self):
-        return "{D:" + str(self.depth) + ",A:" + str(self.prev_action) + ",S:" + str(self.score) + ",V:" + (str(round(self.V, 4))) + ",N:" + str(
-            self.visit_count) + "," + str(self.player) + "}"
+        return "{" + str(self.depth) + "_" + str(self.prev_action) + "," + str(self.score) + "S," + (str(round(self.V, 4))) + "V," + str(
+            self.visit_count) + "N," + str(self.player) + "}"
 
     def print(self, backwards=False):
 

@@ -1,6 +1,6 @@
 from Algorithms.MCTS_TDUCT import *
 
-class MCTS_TDUCT2(MCTS_TDUCT):
+class MCTS_TDUCT3(MCTS_TDUCT):
 
     def get_name(self):
         return "MCTS_TDUCT2"
@@ -39,7 +39,11 @@ class MCTS_TDUCT2(MCTS_TDUCT):
             print(node.parent.player)
             print(self.reward(node.parent, node.state))
 
-        reward *= self.gamma ** num_steps
+        reward *= (self.gamma ** (num_steps - 1))
+
+        alpha = 1 / (1+node.visit_count)
+        node.V = node.V + alpha * (reward - node.V)
+
         while node is not None:
             node.visit_count += 1
 

@@ -1,7 +1,7 @@
 import pygame
 from copy import deepcopy
 from BitBoard import *
-
+import time
 from Player import *
 from Algorithms.MCTS_UCT import *
 from Algorithms.MCTS import *
@@ -19,52 +19,71 @@ def experiment(trainees, enemy, episodes, batch, tournament_games = 10):
 
     tournament_number = 1
 
-    res = []
-    for i in range(episodes):
+    training_results = []
+    tournament_results = []
+    i = 0
+    while i < episodes:
 
         #Train
-
         print("Training ", (i+1), "-", i + batch)
-        completed_games, winners = simulation(trainees, num_episodes=batch)
 
+        t0 = time.clock()
+        completed_games, winners = simulation(trainees, num_episodes=batch)
+        t1 = time.clock()
+        print("Training ", batch, " games = ", t1-t0, " seconds")
+        training_results.append((completed_games, winners))
         best_winner = None
         c = float("-inf")
         for winner, count in winners.items():
             if count >= c:
                 best_winner = winner
                 c = count
-
         i += batch
 
         tag = "_" + str(i + 1)
         if i == episodes - 1:
             tag = ""
 
+
         if isinstance(best_winner, Bot):
-            best_winner.save(tag)
+            best_winner.save()
+            e = best_winner.algorithm.e
+        #    best_winner.algorithm.e = 0
             for p in trainees:
-                if p is not best_winner and isinstance(p, Bot):
-                    p.algorithm.tree_data = best_winner.algorithm.tree_data
+                if p is not best_winner:
+                    p.load()
 
         players = [best_winner, enemy]
         #Tournament
         print("Tournament ", tournament_number)
-        completed_games, results = simulation(players, tournament_games)
 
+        t0 = time.clock()
+
+    #    for p in players:
+     #       p.setLearning(False)
+        completed_games, results = simulation(players, tournament_games)
+      #  for p in players:
+       #     p.setLearning(True)
+        t1 = time.clock()
+        print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
+
+        if isinstance(best_winner, Bot):
+            best_winner.algorithm.e = e
         print(results)
         tournament_number += 1
 
-        res.append(results)
-    return res
+        tournament_results.append((completed_games, results))
+    return training_results, tournament_results
 
 def simulation(players, num_episodes=10, table = {}, debug=False):
     completed_games = []
 
     state = create_board(players)
     winners = {}
+
     try:
         for i in range(num_episodes):
-            print("Game ", (i+1))
+            print("Game ", (i+1), end = " - " )
             state.reset()
             winner = None
             while not state.game_over:
@@ -87,6 +106,7 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
             else:
                 winners[winner] = 1
 
+            print(winner, " ", len(state.moves))
             completed_games.append(deepcopy(state))
 
     except KeyboardInterrupt:

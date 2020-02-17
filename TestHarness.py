@@ -3,7 +3,7 @@ from BitBoard import BitBoard
 from Player import *
 from Algorithms.MCTS_TDUCT import *
 from Algorithms.MCTS_TDUCT2 import *
-import Algorithm as algo
+
 from Algorithms.Minimax import *
 import math
 import Game
@@ -13,8 +13,12 @@ from sklearn.preprocessing import OneHotEncoder
 from copy import deepcopy
 import time
 import GameGUI as GUI
+from Algorithms.MCTS_TDUCT3 import *
 
+players = [ Bot("BLUE", algorithm=AlphaBeta(4), memory=None),  Bot("RED", algorithm=Minimax(4), memory=None)]
 
+#games, results = Game.simulation(players, 100)
+#print(results)
 def generate_board(players, states):
     board = BitBoard(players)
     for i in range(len(players)):
@@ -22,7 +26,9 @@ def generate_board(players, states):
     return board
 
 
-players = [Human("YELLOW"), Bot("RED", algorithm=MCTS_TDUCT2(debug=True))]
+
+b = BitBoard(players)
+
 #tree_data = Game.load_tree_data()
 #players[0].algorithm.tree_data = tree_data
 board = BitBoard(players)

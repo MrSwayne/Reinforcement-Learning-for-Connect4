@@ -68,7 +68,7 @@ class BitBoard():
         states = []
         for player, player_board in self.boards.items():
             states.append(player_board)
-        states.append(int(self.get_player_turn()))
+        states.append(int(self.get_player_turn()) % len(self.players))
         return tuple(states)
 
     def reset(self):
