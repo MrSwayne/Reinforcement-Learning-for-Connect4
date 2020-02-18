@@ -112,8 +112,6 @@ def play(board, simulation=False, W = 1280, H=720):
     for p in board.players:
         threads[p] = None
     action_queue = Queue()
-  #  for p in board.players:
-   #     if isinstance(p, )
 
 
     block_size = 50
@@ -122,8 +120,6 @@ def play(board, simulation=False, W = 1280, H=720):
     pygame.display.set_caption("Connect4")
     font = pygame.font.SysFont("microsoftsansserif",20)
     clock = pygame.time.Clock()
-
-    buttons = ["Reset"]
 
     screen = pygame.display.set_mode((W, H))
     done = False

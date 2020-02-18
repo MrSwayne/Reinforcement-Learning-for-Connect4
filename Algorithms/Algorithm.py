@@ -15,14 +15,6 @@ class Algorithm():
         pass
 
     @abstractmethod
-    def load_data(self, path):
-        pass
-
-    @abstractmethod
-    def save_data(self, path):
-        pass
-
-    @abstractmethod
     def get_name(self):
         pass
 
@@ -33,13 +25,74 @@ class Algorithm():
     def get_values(self):
         pass
 
+class Tree:
+
+    @staticmethod
+    def create_tree(state, memory = {}):
+        root = Node(parent=None, state=state, player=state.get_player_turn(), prev_action=-1, depth=0, data=memory)
+        return root
+
 class Node:
 
-    def __init__(self, parent, state, player, prev_action, depth=0):
+    def create_children(self):
+        for action in self.state.get_actions():
+
+            _state = deepcopy(self.state)
+            _state.place(action)
+            player = _state.get_player_turn()
+            child = Node(parent=self, state=_state, player=player, prev_action=action, depth= self.depth + 1, data=self.data)
+            self.children.append(child)
+
+            if self.best_child is None or child.V > self.best_child.V:
+                self.best_child = child
+            if self.worst_child is None or child.V < self.worst_child.V:
+                self.worst_child = child
+
+    @property
+    def V(self):
+        return self._V
+
+    @property
+    def visit_count(self):
+        return self._visits
+
+    @property
+    def score(self):
+        return self._score
+
+    @V.setter
+    def V(self, value):
+        self._V = value
+
+        if self not in self.data:
+            self.data[self] = (self.score, self.V, self.visit_count)
+
+        if self.parent is not None:
+            if self._V > self.parent.best_child.V:
+                self.parent.best_child = self
+            if self._V < self.parent.best_child.V:
+                self.parent.worst_child = self
+
+    @visit_count.setter
+    def visit_count(self, value):
+        self._visits = value
+
+        if self not in self.data:
+            self.data[self] = (self.score, self.V, self.visit_count)
+
+    @score.setter
+    def score(self, value):
+        self._score = value
+
+        if self not in self.data:
+            self.data[self] = (self.score, self.V, self.visit_count)
+
+    def __init__(self, parent, state, player, prev_action, depth=0, data = {}):
+        self.data = data
         self.children = []
         self.parent = parent
-        self.visit_count = 0
-        self.score = 0
+        self._visits = 0
+        self._score = 0
         self.state = state
         self.player = player
         self.prev_action = prev_action
@@ -47,21 +100,23 @@ class Node:
 
         self.best_child = None
         self.worst_child = None
-        self.tag = str(depth) + "_" + str(prev_action)
 
         if state is not None and state.game_over:
-            self.V = 0
+            self._V = 0
         else:
-            self.V = 0.5
+            self._V = 0.5
 
     def get_state(self):
         if self.state is None:
             return None
         return self.state.get_state()
 
+
     def __repr__(self):
-        return "{" + str(self.depth) + "_" + str(self.prev_action) + "," + str(self.score) + "S," + (str(round(self.V, 4))) + "V," + str(
-            self.visit_count) + "N," + str(self.player) + "}"
+        return str(self.get_state())
+
+    def __str__(self):
+        return str((self.score, self.V, self.visit_count))
 
     def print(self, backwards=False):
 

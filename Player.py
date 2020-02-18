@@ -74,28 +74,12 @@ class Bot(Player):
         Player.__init__(self, colour)
         self.best_choice = -1
         self.algorithm = algorithm
-        self.memory = memory
-
-        if memory is not None:
-            self.algorithm.load_data(memory + ".csv")
 
     def get_choice(self, board):
         return self.algorithm.get_move(state=board)
-
-
 
     def clear_memory(self):
         self.algorithm.clear_memory()
 
     def setLearning(self, on=True):
         self.algorithm.learning = on
-
-    def load(self, path = None):
-        if path is None:
-            self.algorithm.load_data(self.memory + ".csv")
-        else:
-            self.algorithm.load_data(path + ".csv")
-
-    def save(self, tag = ""):
-        if self.memory:
-            self.algorithm.save_data(self.memory + tag + ".csv")

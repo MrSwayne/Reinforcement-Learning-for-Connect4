@@ -8,23 +8,6 @@ class MCTS_UCT(MCTS):
         self.MAX_REWARD = 1
         self.MIN_REWARD = 0
 
-    def create_node(self, parent=None, action=-1, state=None, player=None):
-
-        if parent is None:
-            node = Node(parent=None, state=state, player=player, prev_action=action, depth=0)
-        else:
-            temp_board = deepcopy(parent.state)
-            temp_board.place(action)
-            node = (Node(parent=parent, state=temp_board, player=temp_board.get_player_turn(), prev_action=action, depth=parent.depth + 1))
-
-        _state = node.get_state()
-
-        if _state in self.tree_data:
-            node.visit_count, node.score, node.V = self.tree_data[_state]
-
-        return node
-
-
     def get_name(self):
         return "MCTS_UCT"
 
@@ -45,10 +28,6 @@ class MCTS_UCT(MCTS):
 
     def select_node(self):
         node = super().select_node()
-
-        if node.get_state() not in self.tree_data:
-            self.tree_data[node.get_state()] = (node.visit_count, node.score)
-
         return node
 
     def child_policy(self, node):
@@ -93,7 +72,5 @@ class MCTS_UCT(MCTS):
                 node.score += reward
 
             node.visit_count += 1
-
-            self.tree_data[node.get_state()] = (node.visit_count, node.score)
 
             node = node.parent

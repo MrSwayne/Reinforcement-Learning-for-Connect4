@@ -1,11 +1,6 @@
 from Algorithms.Algorithm import *
-import os
-import csv
-
-
 
 class MCTS(Algorithm):
-
 
     def get_values(self):
         list = {}
@@ -27,9 +22,6 @@ class MCTS(Algorithm):
         self.end = None
         self.gamma = g
         self.lambd = l
-        self.tree_data = {}
-        self.path = "tree_data.csv"
-        self.num_new_states = 0
         self.root = None
         self.debug = debug
 
@@ -40,10 +32,7 @@ class MCTS(Algorithm):
             self.n = 250
 
     def clear_memory(self):
-        self.tree_data = {}
-
         self.root = None
-
 
     def should_continue(self):
         if self.duration:
@@ -63,9 +52,6 @@ class MCTS(Algorithm):
         self.end = None
         self.current_n = 0
 
-        if not self.learning:
-            self.tree_data = {}
-
         # Create game tree
 
         # If the tree has already been created
@@ -81,6 +67,8 @@ class MCTS(Algorithm):
 
         # If tree has not been initialised previously, or it couldn't find the opponent's move, the tree is discarded
         if self.root is None:
+            self.root = Tree.create_tree(state)
+            '''
             self.root = self.create_node(parent=None, action=-1, state=state, player=state.get_player_turn())
             best_node = self.create_node()
             best_node.V = float("-inf")
@@ -88,6 +76,7 @@ class MCTS(Algorithm):
             worst_node.V = float("inf")
             self.root.best_node = best_node
             self.root.worst_node = worst_node
+            '''
 
         # Based on initial conditions like time per turn, or X amount of simulations etc.
         while self.should_continue():
@@ -108,8 +97,6 @@ class MCTS(Algorithm):
 
         best_child = self.child_policy(self.root)
 
-        if self.debug:
-            print(self.root, "->", self.root.children, "\t", best_child.prev_action, "\t")
         self.root = best_child
 
         return best_child.prev_action
@@ -129,15 +116,7 @@ class MCTS(Algorithm):
         return reward, num_steps
 
     def expand(self, node):
-        for action in node.state.get_actions():
-            child = self.create_node(parent=node, state=node.state, action=action)
-
-            if node.best_child is None or child.V > node.best_child.V:
-                node.best_child = child
-            if node.worst_child is None or child.V < node.worst_child.V:
-                node.worst_child = child
-
-            node.children.append(child)
+        node.create_children()
 
     def rollout_policy(self, state):
         temp_state = deepcopy(state)
@@ -152,7 +131,6 @@ class MCTS(Algorithm):
                 break
         return temp_state, count
 
-
     @abstractmethod
     def backpropagate(self, node, reward, num_steps):
         pass
@@ -165,19 +143,6 @@ class MCTS(Algorithm):
     def tree_policy(self, node):
         pass
 
-
     @abstractmethod
     def child_policy(self, node):
-        pass
-
-    @abstractmethod
-    def create_node(self, parent=None, action=-1, state=None, player=None):
-        pass
-
-    @abstractmethod
-    def save_data(self, path):
-        pass
-
-    @abstractmethod
-    def load_data(self, path):
         pass
