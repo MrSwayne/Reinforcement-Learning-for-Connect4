@@ -10,12 +10,17 @@ import time
 import os
 import csv
 import pandas
-
+from datetime import datetime
 
 def create_board(players):
     return BitBoard(players)
 
-def experiment(trainees, enemy, episodes, batch, tournament_games = 10):
+def experiment(trainee, enemy, episodes = 500, batch= 100, tournament_games = 100):
+
+    memory = "experiments/" + datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
+    trainees = [Bot("BLUE", algorithm=trainee, memory=memory), Bot("ORANGE", algorithm=trainee, memory=memory)]
+
+    enemy = Bot("RED", algorithm=enemy)
 
     tournament_number = 1
 
@@ -25,54 +30,45 @@ def experiment(trainees, enemy, episodes, batch, tournament_games = 10):
     while i < episodes:
 
         #Train
-        print("Training ", (i+1), "-", i + batch)
 
-        t0 = time.clock()
-        completed_games, winners = simulation(trainees, num_episodes=batch)
-        t1 = time.clock()
-        print("Training ", batch, " games = ", t1-t0, " seconds")
-        training_results.append((completed_games, winners))
         best_winner = None
-        c = float("-inf")
-        for winner, count in winners.items():
-            if count >= c:
-                best_winner = winner
-                c = count
-        i += batch
+        if i != 0:
+            print("Training ", i, "-", i + batch)
 
-        tag = "_" + str(i + 1)
-        if i == episodes - 1:
-            tag = ""
+            t0 = time.clock()
+            completed_games, winners = simulation(trainees, num_episodes=batch)
+            t1 = time.clock()
+            print("Training ", batch, " games = ", t1-t0, " seconds")
+            training_results.append(winners)
+            c = float("-inf")
+            for winner, count in winners.items():
+                if count >= c:
+                    best_winner = winner
+                    c = count
+            i += batch
 
+        if best_winner == None:
+            best_winner = trainees[0]
 
-        if isinstance(best_winner, Bot):
-            best_winner.save()
-            e = best_winner.algorithm.e
-        #    best_winner.algorithm.e = 0
-            for p in trainees:
-                if p is not best_winner:
-                    p.load()
+        if random.randint(0,10) < 5:
+            players = [best_winner, enemy]
+        else:
+            players = [enemy, best_winner]
 
-        players = [best_winner, enemy]
         #Tournament
-        print("Tournament ", tournament_number)
+        print("Tournament ", tournament_number, "\t", players)
 
         t0 = time.clock()
 
-    #    for p in players:
-     #       p.setLearning(False)
-        completed_games, results = simulation(players, tournament_games)
-      #  for p in players:
-       #     p.setLearning(True)
+        completed_games, winners = simulation(players, tournament_games)
+
         t1 = time.clock()
         print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
 
-        if isinstance(best_winner, Bot):
-            best_winner.algorithm.e = e
-        print(results)
+        print(winners)
         tournament_number += 1
 
-        tournament_results.append((completed_games, results))
+        tournament_results.append(winners)
     return training_results, tournament_results
 
 def simulation(players, num_episodes=10, table = {}, debug=False):

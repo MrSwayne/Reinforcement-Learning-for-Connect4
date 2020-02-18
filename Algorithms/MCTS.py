@@ -18,7 +18,7 @@ class MCTS(Algorithm):
     def get_name(self):
         return "MCTS"
 
-    def __init__(self, duration=None, depth=None, n=1000, e=0.3, g=0.9, l=1, debug=False):
+    def __init__(self, duration=None, depth=None, n=1000, e=0.15, g=0.9, l=1, debug=False):
         super().__init__()
         self.e = e
         self.duration = duration
@@ -39,6 +39,12 @@ class MCTS(Algorithm):
         if not duration and not depth and not n:
             self.n = 250
 
+    def clear_memory(self):
+        self.tree_data = {}
+
+        self.root = None
+
+
     def should_continue(self):
         if self.duration:
             if not self.end:
@@ -56,6 +62,9 @@ class MCTS(Algorithm):
       # Initialise computational starts
         self.end = None
         self.current_n = 0
+
+        if not self.learning:
+            self.tree_data = {}
 
         # Create game tree
 
@@ -123,9 +132,9 @@ class MCTS(Algorithm):
         for action in node.state.get_actions():
             child = self.create_node(parent=node, state=node.state, action=action)
 
-            if node.best_child == None or child.V > node.best_child.V:
+            if node.best_child is None or child.V > node.best_child.V:
                 node.best_child = child
-            if node.worst_child == None or child.V < node.worst_child.V:
+            if node.worst_child is None or child.V < node.worst_child.V:
                 node.worst_child = child
 
             node.children.append(child)
@@ -151,8 +160,6 @@ class MCTS(Algorithm):
     @abstractmethod
     def reward(self, node, state):
         pass
-
-        # UCB
 
     @abstractmethod
     def tree_policy(self, node):

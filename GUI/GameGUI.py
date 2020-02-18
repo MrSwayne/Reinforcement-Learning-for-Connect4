@@ -26,7 +26,13 @@ def drawGraph(screen, font, node, width, height, depth=0, max_depth=4):
         new_width = (w1,w2)
         drawGraph(screen, font, child, new_width, new_height, depth + 1)
 
-        pygame.draw.line(screen, (126,126,126), (current_width, height), ((w2 - w1) / 2 + w1, new_height), 4)
+        x1 = current_width
+        x2 = (w2 - w1) / 2 + w1
+        y1 = height
+        y2 = new_height
+        pygame.draw.line(screen, (126,126,126), (x1,y1), (x2, y2), 4)
+        actionText = font.render("A: " + str(child.prev_action), True, (255,255,255))
+        screen.blit(actionText, ((x1 + x2) / 2, (y1 + y2) / 2))
 
      #  pygame.draw.circle(screen, (126, 126, 126), (current_width, height), 15)
 
@@ -99,7 +105,7 @@ def draw(states, width=1280, height=720):
 
 
 
-def play(board, simulation=False):
+def play(board, simulation=False, W = 1280, H=720):
     paused = False
     play_text = "Pause"
     threads = {}
@@ -109,8 +115,6 @@ def play(board, simulation=False):
   #  for p in board.players:
    #     if isinstance(p, )
 
-    W = 1280 + 500
-    H = 720
 
     block_size = 50
     pygame.init()
@@ -257,6 +261,7 @@ def play(board, simulation=False):
         clock_box = pygame.Rect(init_offset_x, init_offset_y - 25, 60, 20)
         pygame.draw.rect(screen, Player.colours["AQUA"], clock_box)
 
+
        # t = time.clock() - t0
        # clock_text = font.render(str(t), True, Player.colours["WHITE"])
        # screen.blit(clock_text, (clock_box.centerx - clock_box.width / 2 + 10, clock_box.centery - clock_box.height / 2 + 5))
@@ -302,7 +307,7 @@ def play(board, simulation=False):
                     board.undo()
                     print("undo")
 
-                if human_turn and not paused:
+                if human_turn:
                     x, y = pygame.mouse.get_pos()
                     try:
                         x = (x - init_offset_x)
@@ -311,11 +316,12 @@ def play(board, simulation=False):
                         y = y - (y % block_size)
 
                         action = board_map[x, y]
+                        if action is not None:
+                            if paused:
+                                paused = False
+                                play_text = "Pause"
                     except:
                         continue
-
-
-
 
         if action is not None and not paused:
             board.place(action)

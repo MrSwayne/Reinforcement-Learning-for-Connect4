@@ -8,7 +8,7 @@ class MCTS_TDUCT3(MCTS_TDUCT):
     def select_node(self):
         node = super().select_node()
 
-        if node.get_state() not in self.tree_data and self.learning:
+        if node.get_state() not in self.tree_data:
             self.tree_data[node.get_state()] = (node.visit_count, node.score, node.V)
 
         return node
@@ -30,14 +30,13 @@ class MCTS_TDUCT3(MCTS_TDUCT):
 
     def backpropagate(self, node, reward, num_steps):
 
-        if node.state.game_over and 1 == 2:
-            print(self.reward(node, node.state))
+        if num_steps == 2:
             node.state.print()
-            print(node.player)
-            print(node.state.check_win())
-            print(node.parent.state.print())
-            print(node.parent.player)
-            print(self.reward(node.parent, node.state))
+            print(reward)
+            print(node.score)
+            print(node.visit_count)
+            print()
+            print()
 
         reward *= (self.gamma ** (num_steps - 1))
 
@@ -45,6 +44,9 @@ class MCTS_TDUCT3(MCTS_TDUCT):
         node.V = node.V + alpha * (reward - node.V)
 
         while node is not None:
+
+            if reward > 0:
+                node.score += 1
             node.visit_count += 1
 
             if node.parent is not None:
@@ -52,7 +54,6 @@ class MCTS_TDUCT3(MCTS_TDUCT):
                 alpha = 1/ (node.parent.visit_count)
                # node.parent.V = node.parent.V + alpha * (self.reward(node, node.state) + self.gamma * node.V - node.parent.V)
                 node.parent.V = node.parent.V + alpha * (reward + self.gamma * node.V - node.parent.V)
-
                 if node.V > node.parent.best_child.V:
                     node.parent.best_child = node
                 if node.V < node.parent.worst_child.V:
@@ -61,6 +62,7 @@ class MCTS_TDUCT3(MCTS_TDUCT):
             if self.learning:
                 self.tree_data[node.get_state()] = (node.visit_count, node.score, node.V)
             node = node.parent
+
 
     def save_data(self, path):
         print("Saving data now.")

@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import Algorithms
 class Player():
     num_players = 0
 
@@ -14,6 +15,15 @@ class Player():
         "NAVY":(0,0,128),
         "ORANGE":(265,165,0)
     }
+
+    @staticmethod
+    def create_player(args):
+        if(args["type"].upper() == "HUMAN"):
+            return Human(args["colour"])
+        else:
+            algorithm = Algorithms.create_algorithm(args)
+            memory = args["memory"]
+            return Bot(args["colour"], algorithm, memory)
 
     def __init__(self, colour):
         Player.num_players += 1
@@ -73,6 +83,8 @@ class Bot(Player):
         return self.algorithm.get_move(state=board)
 
 
+    def clear_memory(self):
+        self.algorithm.clear_memory()
     def setLearning(self, on=True):
         self.algorithm.learning = on
 

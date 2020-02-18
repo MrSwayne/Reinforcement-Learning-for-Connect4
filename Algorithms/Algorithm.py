@@ -5,8 +5,6 @@ import math
 from datetime import datetime, timedelta
 
 class Algorithm():
-    algorithms = ["MINIMAX", "MCTS", "RANDOM"]
-
 
     def __init__(self):
         self.learning = True
@@ -28,10 +26,12 @@ class Algorithm():
     def get_name(self):
         pass
 
+    def clear_memory(self):
+        pass
+
     @abstractmethod
     def get_values(self):
         pass
-
 
 class Node:
 
