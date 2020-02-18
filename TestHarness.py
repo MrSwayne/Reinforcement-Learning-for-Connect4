@@ -2,9 +2,9 @@ from BitBoard import BitBoard
 from Player import *
 
 from GUI import GameGUI as GUI
-from Algorithms.MCTS_TDUCT3 import *
+from Algorithms import *
 
-players = [ Bot("BLUE", algorithm=MCTS_TDUCT3(duration=timedelta(seconds=3)), memory="mm"), Human("RED")]
+players = [ Bot("BLUE", algorithm=MCTS_TDUCT(duration=timedelta(seconds=3)), memory="mm"), Human("RED")]
 
 #print(results)
 def generate_board(players, states):
