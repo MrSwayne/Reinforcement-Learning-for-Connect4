@@ -1,61 +1,48 @@
-from BitBoard import BitBoard
-from Player import *
-
 from GUI import GameGUI as GUI
+from Player import *
 from Algorithms import *
 
-players = [ Bot("BLUE", algorithm=MCTS_TDUCT(duration=timedelta(seconds=3)), memory="mm"), Human("RED")]
+from BitBoard import *
 
-board = BitBoard(players)
-
-board.place_sequence([0,1,2,3,4,5,3,2,5,6,4,3,2,1,2,3])
-import time
-
-t0 = time.clock()
-
-for i in range(300):
-    _state = deepcopy(board)
-    _state.place(random.choice(board.get_actions()))
-
-print( time.clock() - t0)
-
-t0 = time.clock()
-for i in range(300):
+players = [Human("RED"),Bot("YELLOW", algorithm=AlphaBeta(6))]
+def get_states(data, moves):
+    states = {}
+    boards = []
     b = BitBoard(players)
-    for move in board.moves:
+    for move in moves:
         b.place(move)
+        _b = deepcopy(b)
+        boards.append(_b)
+        states[b.get_state()] = _b
 
-print(time.clock() - t0)
-data = {}
-
-h = Tree.create_tree(board, memory = data)
-
-h.create_children()
-
-h.children[0].visit_count += 1
-print(data)
+    for state, node in data.items():
+        if state in states:
+            print(boards.index(states[state]), ". ", state, " ", node)
 
 
-exit(-1)
-#print(results)
-def generate_board(players, states):
-    board = BitBoard(players)
-    for i in range(len(players)):
-        board.set_state(players[i], states[i])
-    return board
+
+
+moves = [3, 2, 2, 3, 3, 2, 3, 5, 5, 3, 2, 6, 2, 6, 4, 1, 6, 6, 1, 2, 1, 5, 5, 5, 4, 4, 4]
+
 
 board = BitBoard(players)
-
-GUI.play(board, W=2000, H=2160)
-
-completed_games = []
-'''
-for i in range(10):
-    board.reset()
-    completed_games.append(deepcopy(GUI.play(board, simulation=True)))
- 
-    '''
 
 GUI.play(board)
-players[1].save()
-#GUI.draw(completed_games)
+# #board.place_sequence([3, 2, 2, 3, 3, 2, 3, 5, 5, 3, 2, 6, 2, 6, 4, 1, 6, 6, 1, 6, 1, 5, 5, 5, 4, 4])
+print(board.boards)
+GUI.draw([board])
+'''
+z = []
+z.append([3,4,1,1,0,0,2])
+z.append([3, 2, 5, 2, 6, 4, 4, 4, 6, 5, 2, 4, 6, 6, 2, 4, 4, 1, 1, 2, 1, 5, 1, 1, 5, 6, 1, 2, 6, 3, 3])
+z.append([3, 2, 5, 2, 6, 4, 4, 4, 6, 5, 2, 4, 6, 6, 2, 4, 4, 2, 0, 1, 0, 0, 0, 2, 0, 5, 5, 6, 1, 3, 3])
+z.append([3, 2, 5, 2, 6, 4, 4, 4, 6, 5, 2, 4, 6, 6, 2, 1, 2, 2, 4, 5, 5, 1, 1, 0, 0, 1, 5, 1, 0, 0, 5, 3, 3])
+z.append([3, 2, 5, 2, 6, 4, 4, 4, 6, 5, 2, 4, 2, 1, 2, 2, 4, 5, 5, 1, 1, 6, 1, 1, 6, 0, 0, 5, 1, 0, 6, 3, 3])
+boards = []
+for moves in z:
+    b = BitBoard(players)
+    for move in moves:
+        b.place(move)
+    boards.append(b)
+'''
+#GUI.draw(boards)

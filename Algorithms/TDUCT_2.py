@@ -2,7 +2,7 @@ from Algorithms.MCTS import *
 import os
 import csv
 
-class MCTS_TDUCT(MCTS):
+class MCTS_TDUCT2(MCTS):
 
     def get_name(self):
         return "MCTS_TDUCT"
@@ -10,8 +10,7 @@ class MCTS_TDUCT(MCTS):
     def reward(self, node, state):
         if not state.game_over:
             return 0
-        else:
-            check_win = state.winner
+        check_win = state.winner
 
         if int(check_win) == -1:
             return 0
@@ -41,7 +40,6 @@ class MCTS_TDUCT(MCTS):
               #  score = normalised_score + self.e * math.sqrt(math.log(pvc) / cvc)
 
                 score = child.V + (self.e * math.sqrt( math.log(pvc) / (cvc + 1)))
-                #print(score, "....", normalised_score, "......", child.V, "-", child.visit_count)
             if score > max_score:
                 best_children = []
                 max_score = score
@@ -76,14 +74,17 @@ class MCTS_TDUCT(MCTS):
 
         while node is not None:
 
-            if reward < 0:
+            if reward > 0:
                 node.score += 1
-
+            reward *= -1
             node.visit_count += 1
 
             if node.parent is not None:
-                reward *= -self.gamma
+
+                target = -(self.reward(node.parent, node.parent.state) + self.gamma * node.V)
+
                 alpha = 1 / (node.parent.visit_count)
-                node.parent.V = node.parent.V + alpha * (reward + self.gamma * node.V - node.parent.V)
+
+                node.parent.V = node.parent.V + alpha * (target - node.parent.V)
 
             node = node.parent

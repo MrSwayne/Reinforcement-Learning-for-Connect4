@@ -25,72 +25,92 @@ class AlphaBeta_h(Algorithm):
         max_score = float("-inf")
         best_action = None
 
+        best_children = []
         for action in state.get_actions():
 
             _state = copy.deepcopy(state)
             _state.place(action)
             score = self.minimax(_state)
             self.scores[action] = score
-            if score >= max_score:
-                best_action = action
+            if score > max_score:
+                best_children = []
                 max_score = score
-        return best_action
+            if score >= max_score:
+                best_children.append(action)
+        return random.choice(best_children)
 
-    def minimax(self, state, alpha=float("-inf"), beta=float("inf"), depth = 0):
-        if state.game_over:
-            winner = state.winner
-
-            if winner == self.max:
-                return 10
-            elif winner == self.min:
-                return -10
-            else:
-                return 0
+    def minimax(self, state, alpha=float("-inf"), beta=float("inf"), depth=0):
 
         if depth == self.max_depth:
             return self.heuristic(state, state.get_player_turn(), state.win_span)
 
-        max_score = float("-inf")
-        min_score = float("inf")
-        for action in state.get_actions():
-            score = 0
-            _state = copy.deepcopy(state)
-            _state.place(action)
+        if state.game_over:
+            winner = state.winner
 
-            score += self.minimax(_state, alpha, beta, depth + 1)
+            if winner == self.max:
+                return 100 - depth
+            elif winner == self.min:
+                return -100 + depth
+            else:
+                return 0
 
-            max_score = max(max_score, score)
-            if state.get_player_turn() == self.max:
-                alpha = max(alpha, max_score)
+        if state.get_player_turn() == self.max:
+            val = float("-inf")
+            for action in state.get_actions():
+                _state = copy.deepcopy(state)
+                _state.place(action)
+                val = max(val, self.minimax(_state, alpha, beta, depth + 1))
 
-            min_score = min(min_score, score)
-            if state.get_player_turn() == self.min:
-                beta = min(beta, min_score)
+                alpha = max(alpha, val)
 
-            if beta <= alpha:
-                break
+                if alpha >= beta:
+                    break
+            return val
 
-        if(state.get_player_turn() == self.max):
-            return max_score
         else:
-            return min_score
+            val = float("inf")
+            for action in state.get_actions():
+                _state = copy.deepcopy(state)
+                _state.place(action)
+
+                val = min(val, self.minimax(_state, alpha, beta, depth + 1))
+
+                beta = min(beta, val)
+                if alpha >= beta:
+                    break
+            return val
 
     def heuristic(self, state, player, win_span):
-
-        steps = {}
-        steps["leftDiagonal"] = [(-1,-1), (1,1)]
-        steps["rightDiagonal"] = [(1,-1), (-1,1)]
-        steps["left"] = [(-1,0), (1,0)]
-        steps["up"] = [(0,-1), (0,1)]
+        total_score = 0
 
         for r in range(state.rows):
             for c in range(state.cols):
-                pass
+                cell = state.get(r, c)
+                if cell is not 0:
 
+                    neighbours = self.get_neighbours(state, r, c, win_span)
+
+                    score = 1
+                    for i in range(0, len(neighbours) - 1, 2):
+                        dirs = [neighbours[i], neighbours[i + 1]]
+                        for dir in dirs:
+                            for neighbour in dir:
+                                if neighbour == 0:
+                                    score += 0.2
+                                if neighbour == cell:
+                                    score += 1
+                                else:
+                                    break
+                    if int(cell) == int(player):
+                        total_score += score
+                    else:
+                        total_score -= score
+
+        return total_score
 
     def check_win(self, state, player, win_span):
         ##Vertical |, horizontal -, diagonal \, diagonal /
-        directions = [1,state.rows + 1, state.rows, state.rows + 2]
+        directions = [1, state.rows + 1, state.rows, state.rows + 2]
 
         # Only need to worry about the player who placed last, assuming that check_win is called after every placement
         board = state.boards[player]
@@ -114,6 +134,89 @@ class AlphaBeta_h(Algorithm):
         # Game is on going
         return False
 
+    def get_neighbours(self, board, r, c, win_span):
+        map = {"LEFT": [], "RIGHT": [], "UP": [], "DOWN": [], "UP_LEFT": [], "DOWN_RIGHT": [], "UP_RIGHT": [],
+               "DOWN_LEFT": []}
+
+        map = []
+        if c >= 0 and c < board.cols and r >= 0 and r < board.rows:
+            cell = board.get(r, c)
+
+            if cell is not 0:
+
+                list = []
+                for col in range(c - 1, c - win_span, -1):
+                    neighbour_cell = board.get(r, col)
+                    list.append(neighbour_cell)
+                map.append(list)
+                ##get right
+
+                list = []
+                for col in range(c + 1, c + win_span, 1):
+                    neighbour_cell = board.get(r, col)
+
+                    list.append(neighbour_cell)
+                map.append(list)
+                ##get up
+
+                list = []
+                for row in range(r - 1, r - win_span, -1):
+                    neighbour_cell = board.get(row, c)
+
+                    list.append(neighbour_cell)
+                map.append(list)
+                ##get down
+
+                list = []
+                for row in range(r + 1, r + win_span, 1):
+                    neighbour_cell = board.get(row, c)
+
+                    list.append(neighbour_cell)
+
+                    ##get up_left
+                map.append(list)
+
+                list = []
+                for i in range(win_span - 1):
+                    row = r - (i + 1)
+                    col = c - (i + 1)
+                    neighbour_cell = board.get(row, col)
+                    list.append(neighbour_cell)
+                map.append(list)
+
+                ##get down_right
+                list = []
+                for i in range(win_span - 1):
+                    row = r + (i + 1)
+                    col = c + (i + 1)
+                    neighbour_cell = board.get(row, col)
+                    list.append(neighbour_cell)
+                map.append(list)
+                ##get bottom_left
+
+                temp_row = r + 1
+                temp_col = c - 1
+                list = []
+                for i in range(win_span):
+                    neighbour_cell = board.get(temp_row, temp_col)
+
+                    list.append(neighbour_cell)
+                    temp_row += 1
+                    temp_col -= 1
+
+                ##get up right
+                temp_row = r - 1
+                temp_col = c + 1
+                map.append(list)
+                list = []
+                for i in range(win_span - 1):
+                    neighbour_cell = board.get(temp_row, temp_col)
+
+                    list.append(neighbour_cell)
+                    temp_row -= 1
+                    temp_col += 1
+                map.append(list)
+        return map
 
 
 class AlphaBeta(Algorithm):
@@ -136,58 +239,59 @@ class AlphaBeta(Algorithm):
         max_score = float("-inf")
         best_action = None
 
+        best_children = []
         for action in state.get_actions():
-
             _state = copy.deepcopy(state)
             _state.place(action)
             score = self.minimax(_state)
             self.scores[action] = score
-            if score >= max_score:
-                best_action = action
+            if score > max_score:
+                best_children = []
                 max_score = score
-        return best_action
+            if score >= max_score:
+                best_children.append(action)
+        return random.choice(best_children)
 
     def minimax(self, state, alpha=float("-inf"), beta=float("inf"), depth = 0):
         if state.game_over:
             winner = state.winner
-
             if winner == self.max:
-                return 10
+                return 100 - depth
             elif winner == self.min:
-                return -10
+                return -100 + depth
             else:
                 return 0
 
         if depth == self.max_depth:
             return self.heuristic(state, state.get_player_turn(), state.win_span)
 
-        max_score = float("-inf")
-        min_score = float("inf")
-        for action in state.get_actions():
-            score = 0
-            _state = copy.deepcopy(state)
-            _state.place(action)
+        if state.get_player_turn() == self.max:
+            val = float("-inf")
+            for action in state.get_actions():
+                _state = copy.deepcopy(state)
+                _state.place(action)
+                val = max(val, self.minimax(_state, alpha, beta, depth + 1))
 
-            score += self.minimax(_state, alpha, beta, depth + 1)
+                alpha = max(alpha, val)
 
-            max_score = max(max_score, score)
-            if state.get_player_turn() == self.max:
-                alpha = max(alpha, max_score)
+                if alpha >= beta:
+                    break
+            return val
 
-            min_score = min(min_score, score)
-            if state.get_player_turn() == self.min:
-                beta = min(beta, min_score)
-
-            if beta <= alpha:
-                break
-
-        if(state.get_player_turn() == self.max):
-            return max_score
         else:
-            return min_score
+            val = float("inf")
+            for action in state.get_actions():
+                _state = copy.deepcopy(state)
+                _state.place(action)
+
+                val = min(val, self.minimax(_state, alpha, beta, depth+1))
+
+                beta = min(beta, val)
+                if alpha >= beta:
+                    break
+            return val
 
     def heuristic(self, state, player, win_span):
-
         if win_span <= 1:
             return 0
         score = 0
@@ -227,6 +331,11 @@ class AlphaBeta(Algorithm):
 
         # Game is on going
         return False
+
+
+
+
+
 
 
 class Minimax(Algorithm):
@@ -287,7 +396,6 @@ class Minimax(Algorithm):
                 max_score = score
             if score <= min_score:
                 min_score = score
-          #  print(max_score, "..", min_score, "->", score)
 
         if(state.get_player_turn() == self.max):
             return max_score

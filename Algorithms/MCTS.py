@@ -1,6 +1,9 @@
 from Algorithms.Algorithm import *
+from Core.IO import IO
 
 class MCTS(Algorithm):
+
+
 
     def get_values(self):
         list = {}
@@ -13,7 +16,7 @@ class MCTS(Algorithm):
     def get_name(self):
         return "MCTS"
 
-    def __init__(self, duration=None, depth=None, n=1000, e=0.15, g=0.9, l=1, debug=False):
+    def __init__(self, memory, duration=None, depth=None, n=1000, e=0.15, g=0.9, l=1, debug=False):
         super().__init__()
         self.e = e
         self.duration = duration
@@ -24,15 +27,32 @@ class MCTS(Algorithm):
         self.lambd = l
         self.root = None
         self.debug = debug
-
+        self.memory = memory
         self.MAX_REWARD = 1
         self.MIN_REWARD = -1
+        self.data = {}
+
+        if memory is not None:
+            self.load_memory()
 
         if not duration and not depth and not n:
             self.n = 250
 
     def clear_memory(self):
         self.root = None
+
+    def set_memory(self, data):
+        self.data = data
+        self.root = None
+
+    def get_memory(self):
+        return self.data
+
+    def load_memory(self):
+        self.data = IO.load(self.memory)
+
+    def save_memory(self, tag):
+        IO.write(self.memory + tag, self.data)
 
     def should_continue(self):
         if self.duration:
@@ -54,6 +74,9 @@ class MCTS(Algorithm):
 
         # Create game tree
 
+        if self.memory is None:
+            self.clear_memory()
+
         # If the tree has already been created
         if self.root is not None:
             children = self.root.children
@@ -65,18 +88,10 @@ class MCTS(Algorithm):
                     self.root = child
                     break
 
+
         # If tree has not been initialised previously, or it couldn't find the opponent's move, the tree is discarded
         if self.root is None:
-            self.root = Tree.create_tree(state)
-            '''
-            self.root = self.create_node(parent=None, action=-1, state=state, player=state.get_player_turn())
-            best_node = self.create_node()
-            best_node.V = float("-inf")
-            worst_node = self.create_node()
-            worst_node.V = float("inf")
-            self.root.best_node = best_node
-            self.root.worst_node = worst_node
-            '''
+            self.root = Tree.create_tree(state, self.data)
 
         # Based on initial conditions like time per turn, or X amount of simulations etc.
         while self.should_continue():
@@ -113,6 +128,7 @@ class MCTS(Algorithm):
     def simulation(self, node):
         terminal_state, num_steps = self.rollout_policy(node.state)
         reward = self.reward(node, terminal_state)
+
         return reward, num_steps
 
     def expand(self, node):

@@ -48,6 +48,7 @@ def drawGraph(screen, font, node, width, height, depth=0, max_depth=4):
 def draw(states, width=1280, height=720):
     pygame.init()
     screen = pygame.display.set_mode((width, height))
+
     done = False
 
     player_colour_map = {0: (255, 255, 255)}
@@ -61,6 +62,7 @@ def draw(states, width=1280, height=720):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                pygame.image.save(screen, "output.png")
                 done = True
             if event.type == pygame.MOUSEBUTTONDOWN:
                 break
@@ -89,6 +91,7 @@ def draw(states, width=1280, height=720):
                     except:
                         colour = player_colour_map[0]
 
+
                     pygame.draw.rect(screen, colour, pygame.Rect(x_offset, y_offset, 30, 30))
                     x_offset += 31
                 x_offset = 15 + state_offset_x
@@ -100,6 +103,7 @@ def draw(states, width=1280, height=720):
                 state_offset_y = 0
 
             count += 1
+
 
         pygame.display.flip()
 
@@ -202,10 +206,10 @@ def play(board, simulation=False, W = 1280, H=720):
 
         for p in board.players:
             if isinstance(p, Bot):
-                if isinstance(p.algorithm, MCTS):
+               # if isinstance(p.algorithm, MCTS):
                     y_offset += 15
 
-                    vals = p.algorithm.get_values()
+                    vals = deepcopy(p.algorithm.get_values())
                     for a, value in vals.items():
                         x = x_offset + block_size * (a) + block_size/4
                         y = y_offset
@@ -302,7 +306,7 @@ def play(board, simulation=False, W = 1280, H=720):
                 if undo_button.collidepoint(event.pos):
                     board.undo()
                     print("undo")
-
+                    pygame.display.flip()
                 if human_turn:
                     x, y = pygame.mouse.get_pos()
                     try:

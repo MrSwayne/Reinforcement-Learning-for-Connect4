@@ -2,29 +2,28 @@ from Algorithms.MCTS import *
 
 class MCTS_UCT(MCTS):
 
-    def __init__(self, duration=None, depth=None, n=2000, e=1.414, g=0.9, l=1, debug=False):
-        super().__init__(duration, depth, n, e, g, l, debug)
+    def __init__(self,memory,  duration=None, depth=None, n=2000, e=1.414, g=0.9, l=1, debug=False):
+        super().__init__(memory, duration, depth, n, e, g, l, debug)
 
         self.MAX_REWARD = 1
-        self.MIN_REWARD = 0
+        self.MIN_REWARD = -1
 
     def get_name(self):
         return "MCTS_UCT"
 
     def reward(self, node, state):
         if not state.game_over:
-            check_win = state.check_win()
-        else:
-            check_win = state.winner
+            return 0
+        check_win = state.winner
 
         if(int(check_win) == int(node.player)):
-            return self.MAX_REWARD
-        elif(int(check_win) < 0):
-            return 0
-        elif(int(check_win) == 0):
-            return 0
-        else:
             return self.MIN_REWARD
+        elif(int(check_win) < 0):
+            return self.MIN_REWARD
+        elif(int(check_win) == 0):
+            return (self.MAX_REWARD + self.MIN_REWARD) / 2
+        else:
+            return self.MAX_REWARD
 
     def select_node(self):
         node = super().select_node()
@@ -66,10 +65,11 @@ class MCTS_UCT(MCTS):
     def backpropagate(self, node, reward, num_steps):
 
         player = node.player
-
         while node is not None:
-            if node.player != player:
-                node.score += reward
+
+            if reward >= 1:
+                node.score += 1
+            reward *= -1
 
             node.visit_count += 1
 

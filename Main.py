@@ -9,29 +9,57 @@ from BitBoard import *
 
 cfg = configparser.ConfigParser()
 cfg.read("config.ini")
-
+players = []
 if cfg["GENERAL"]["MODE"] == "TRAIN":
     episodes = cfg["TRAIN"].getint("episodes")
     batch = cfg["TRAIN"].getint("batch")
     tournament_games = cfg["TRAIN"].getint("tournament_games")
-    trainee = cfg["TRAIN"]["trainee"]
-    trainee = create_algorithm(cfg[trainee])
-    enemy = cfg["TRAIN"]["enemy"]
-    enemy = create_algorithm(cfg[enemy])
 
-    training_res, tournament_res = Game.experiment(trainee, enemy, episodes, batch, tournament_games)
+    for p in cfg["TRAIN"]["players"].split("\n"):
+        players.append(Player.create_player(cfg[p]))
 
-    print(tournament_res)
+    enemy = Player.create_player(cfg[cfg["TRAIN"]["enemy"]])
+    training_res, tournament_res = Game.experiment(players, enemy, episodes, batch, tournament_games)
+
+    print("--\nTraining--\n")
+    for completed_games, winners in training_res:
+        for game in completed_games:
+            print(len(game.moves), end = ", ")
+        print()
+        print(winners)
+        print()
+
+    print("--\nTournament--\n")
+    for completed_games, winners in tournament_res:
+
+        for i in range(len(completed_games)):
+            game = completed_games[i]
+            print(i+1, " ", game.moves)
+        for game in completed_games:
+            print(len(game.moves), end = ", ")
+
+        print()
+        print(winners)
+        print()
 
 elif cfg["GENERAL"]["MODE"] == "SIMULATION":
     players = []
     for p in cfg["SIMULATION"]["players"].split("\n"):
         players.append(Player.create_player(cfg[p]))
-    completed_games, winners = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint("n"))
+
+    completed_games, winners = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint("episodes"), debug=False)
+
     print(winners)
+
+    GUI.draw(completed_games)
 
 elif cfg["GENERAL"]["MODE"] == "PLAY":
     players = []
     for p in cfg["PLAY"]["players"].split("\n"):
         players.append(Player.create_player(cfg[p]))
     GUI.play(BitBoard(players))
+
+for p in players:
+    if isinstance(p, Bot):
+        if isinstance(p.algorithm, MCTS):
+            p.save()

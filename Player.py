@@ -22,8 +22,8 @@ class Player():
             return Human(args["colour"])
         else:
             algorithm = Algorithms.create_algorithm(args)
-            memory = args["memory"]
-            return Bot(args["colour"], algorithm, memory)
+
+            return Bot(args["colour"], algorithm)
 
     def __init__(self, colour):
         Player.num_players += 1
@@ -32,7 +32,6 @@ class Player():
             self.colour = colour.upper()
         else:
             self.colour = "BLACK"
-
         self.number = Player.num_players
 
     @abstractmethod
@@ -70,16 +69,21 @@ class Human(Player):
 
 class Bot(Player):
 
-    def __init__(self, colour, algorithm, memory=None):
+    def __init__(self, colour, algorithm):
         Player.__init__(self, colour)
         self.best_choice = -1
         self.algorithm = algorithm
+        self.learning = True
 
     def get_choice(self, board):
+
         return self.algorithm.get_move(state=board)
 
     def clear_memory(self):
         self.algorithm.clear_memory()
 
-    def setLearning(self, on=True):
-        self.algorithm.learning = on
+    def enable_learning(self, yesOrNo=True):
+        self.learning = yesOrNo
+
+    def save(self, tag = ""):
+        self.algorithm.save_memory(tag)

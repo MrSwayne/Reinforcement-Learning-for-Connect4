@@ -18,20 +18,33 @@ class Algorithm():
     def get_name(self):
         pass
 
+    @abstractmethod
+    def get_memory(self):
+        return {}
+
+    @abstractmethod
     def clear_memory(self):
         pass
 
     @abstractmethod
-    def get_values(self):
+    def set_memory(self, data):
         pass
 
+    @abstractmethod
+    def load_memory(self):
+        pass
+
+    @abstractmethod
+    def get_values(self):
+        return []
+
+from Core.IO import IO
 class Tree:
 
     @staticmethod
-    def create_tree(state, memory = {}):
-        root = Node(parent=None, state=state, player=state.get_player_turn(), prev_action=-1, depth=0, data=memory)
+    def create_tree(state, data):
+        root = Node(parent=None, state=state, player=state.get_player_turn(), prev_action=-1, depth=0, data=data)
         return root
-
 class Node:
 
     def create_children(self):
@@ -64,8 +77,8 @@ class Node:
     def V(self, value):
         self._V = value
 
-        if self not in self.data:
-            self.data[self] = (self.score, self.V, self.visit_count)
+
+        self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
         if self.parent is not None:
             if self._V > self.parent.best_child.V:
@@ -77,15 +90,13 @@ class Node:
     def visit_count(self, value):
         self._visits = value
 
-        if self not in self.data:
-            self.data[self] = (self.score, self.V, self.visit_count)
+        self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
     @score.setter
     def score(self, value):
         self._score = value
 
-        if self not in self.data:
-            self.data[self] = (self.score, self.V, self.visit_count)
+        self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
     def __init__(self, parent, state, player, prev_action, depth=0, data = {}):
         self.data = data
@@ -93,6 +104,7 @@ class Node:
         self.parent = parent
         self._visits = 0
         self._score = 0
+
         self.state = state
         self.player = player
         self.prev_action = prev_action
@@ -100,11 +112,15 @@ class Node:
 
         self.best_child = None
         self.worst_child = None
+        self._V = 0.5
+        if state is not None:
+            if state.game_over:
+                self._V = 0
+            self.total_actions = state.get_actions()
 
-        if state is not None and state.game_over:
-            self._V = 0
-        else:
-            self._V = 0.5
+        if self.get_state() in self.data:
+            (self._score, self._V, self._visits) = self.data[self.get_state()]
+
 
     def get_state(self):
         if self.state is None:

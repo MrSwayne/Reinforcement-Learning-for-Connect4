@@ -116,9 +116,14 @@ class BitBoard():
         newBoard.turn = self.turn
         newBoard.game_over = self.game_over
         newBoard.moves = copy.deepcopy(self.moves)
+        newBoard.winner = self.winner
         return newBoard
 
     def get(self, row, col):
+
+        if row >= self.rows or row < 0 or col >= self.cols or col < 0:
+            return -1
+
         index = self.get_index(row, col)
         for p, b in self.boards.items():
             if (b >> index) & 1 == 1:
