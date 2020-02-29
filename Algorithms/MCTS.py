@@ -40,6 +40,7 @@ class MCTS(Algorithm):
 
     def clear_memory(self):
         self.root = None
+        self.data = {}
 
     def set_memory(self, data):
         self.data = data

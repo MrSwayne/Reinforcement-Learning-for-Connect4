@@ -16,6 +16,9 @@ class Player():
         "ORANGE":(265,165,0)
     }
 
+    def set_learning(self, bool):
+        self.algorithm.set_learning(bool)
+
     @staticmethod
     def create_player(args):
         if(args["type"].upper() == "HUMAN"):

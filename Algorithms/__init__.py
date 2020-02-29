@@ -3,6 +3,7 @@ from Algorithms.MCTS import *
 from Algorithms.MCTS_UCT import *
 from Algorithms.MCTS_TDUCT import *
 from Algorithms.TDUCT_2 import *
+from Algorithms.TDUCT_3 import *
 from Algorithms.Minimax import *
 
 algorithms = ["MINIMAX", "TDUCT", "UCT", "RANDOM"]
@@ -19,6 +20,9 @@ def create_algorithm(args):
 
     elif algorithm.upper() == "TDUCT2":
         return MCTS_TDUCT2(n=args.getint("n"), g=args.getfloat("discount_factor"),
+                                           e=args.getfloat("exploration"), memory= args.get("memory", None))
+    elif algorithm.upper() == "TDUCT3":
+        return MCTS_TDUCT3(n=args.getint("n"), g=args.getfloat("discount_factor"),
                                            e=args.getfloat("exploration"), memory= args.get("memory", None))
     elif algorithm.upper() == "MINIMAX":
         return Minimax(args.getint("depth"))

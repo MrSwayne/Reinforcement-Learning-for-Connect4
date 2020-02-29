@@ -20,10 +20,7 @@ class NeuralNet:
 
     def init_model(self):
         model = k.models.Sequential()
-        model.add(k.layers.Dense(80, input_dim=2, activation='relu'))
-        model.add(k.layers.Dense(80, activation='relu'))
-        model.add(k.layers.Dense(80, activation='relu'))
-        model.add(k.layers.Dense(7, activation='sigmoid'))
+        model.add(k.layers.Convolution2D)
 
         model.compile(loss='binary_crossentropy', optimizer= k.optimizers.Adam(learning_rate=0.5), metrics=['accuracy'])
         return model

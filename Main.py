@@ -10,7 +10,10 @@ from BitBoard import *
 cfg = configparser.ConfigParser()
 cfg.read("config.ini")
 players = []
-if cfg["GENERAL"]["MODE"] == "TRAIN":
+
+mode = cfg["GENERAL"]["MODE"].upper()
+
+if mode == "TRAIN":
     episodes = cfg["TRAIN"].getint("episodes")
     batch = cfg["TRAIN"].getint("batch")
     tournament_games = cfg["TRAIN"].getint("tournament_games")
@@ -42,7 +45,7 @@ if cfg["GENERAL"]["MODE"] == "TRAIN":
         print(winners)
         print()
 
-elif cfg["GENERAL"]["MODE"] == "SIMULATION":
+elif mode == "SIMULATION":
     players = []
     for p in cfg["SIMULATION"]["players"].split("\n"):
         players.append(Player.create_player(cfg[p]))
@@ -51,9 +54,13 @@ elif cfg["GENERAL"]["MODE"] == "SIMULATION":
 
     print(winners)
 
+    if cfg["SIMULATION"].getboolean("train", False):
+        for p in players:
+            if isinstance(p, Bot):
+                p.save("_s")
     GUI.draw(completed_games)
 
-elif cfg["GENERAL"]["MODE"] == "PLAY":
+elif mode == "PLAY":
     players = []
     for p in cfg["PLAY"]["players"].split("\n"):
         players.append(Player.create_player(cfg[p]))

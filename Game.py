@@ -19,7 +19,6 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
 
     tournament_number = 1
 
-
     training_results = []
     tournament_results = []
     i = 0
@@ -57,18 +56,27 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
         for p in players:
             if p is not best_winner:
                 p.algorithm.set_memory(data)
-
-        if random.randint(0,10) < 5:
+        tournament_players = [best_winner, enemy]
+        '''
+                if random.randint(0,10) < 5:
             tournament_players = [best_winner, enemy]
         else:
             tournament_players = [enemy, best_winner]
+            '''
 
         #Tournament
         print("Tournament ", tournament_number, "\t", tournament_players)
 
         t0 = time.clock()
 
+
+        for p in tournament_players:
+            p.set_learning(False)
+
         completed_games, winners = simulation(tournament_players, tournament_games)
+
+        for p in tournament_players:
+            p.set_learning(True)
 
         t1 = time.clock()
         print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
@@ -87,7 +95,7 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
 
     state = create_board(players)
     winners = {}
-
+    finished_states = {}
     try:
 
 
@@ -117,9 +125,12 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
                 winners[winner] = 1
 
             print(winner, " ", len(state.moves))
-            if len(state.moves) == prev_total_states:
+            if state.get_state() not in finished_states:
+                finished_states[state.get_state()] = 1
+            else:
                 print(state.moves)
-            prev_total_states = len(state.moves)
+                finished_states[state.get_state()] += 1
+
             completed_games.append(deepcopy(state))
 
     except KeyboardInterrupt:

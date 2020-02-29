@@ -38,6 +38,10 @@ class Algorithm():
     def get_values(self):
         return []
 
+    def set_learning(self, bool):
+        self.learning = bool
+
+
 from Core.IO import IO
 class Tree:
 

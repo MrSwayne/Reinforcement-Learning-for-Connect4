@@ -207,10 +207,11 @@ class BitBoard():
 
         for direction in directions:
             m = board
-
+            print(direction)
             # Loop for however many discs we need in a row
             for i in range(self.win_span):
                 # Shift the board i amount of columns/rows
+                print(bin(m), " ", bin(board >> (direction * i)))
                 m = m & (board >> (direction * i))
 
             # If after the board is shifted and logical AND'ed together >= 1, that means there is 4 in a row
