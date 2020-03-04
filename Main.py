@@ -48,7 +48,10 @@ if mode == "TRAIN":
 elif mode == "SIMULATION":
     players = []
     for p in cfg["SIMULATION"]["players"].split("\n"):
-        players.append(Player.create_player(cfg[p]))
+        player = Player.create_player(cfg[p])
+        players.append(player)
+        player.set_learning(False)
+
 
     completed_games, winners = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint("episodes"), debug=False)
 

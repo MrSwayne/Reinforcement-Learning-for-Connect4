@@ -22,15 +22,19 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
     training_results = []
     tournament_results = []
     i = 0
+    enemy.set_learning(False)
 
     best_winner = None
     while i < episodes:
-        enemy.clear_memory()
         print(i)
         #Train
 
         best_winner = None
         if i != 0:
+
+            for p in players:
+                p.set_learning(True)
+
             print("Training ", i, "-", i + batch)
 
             t0 = time.clock()
@@ -47,7 +51,7 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
         else:
             i += 1
 
-        if best_winner == None or 0:
+        if best_winner is None or best_winner is 0:
             best_winner = players[0]
         else:
             best_winner.save("_" + str(i))
@@ -74,9 +78,6 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
             p.set_learning(False)
 
         completed_games, winners = simulation(tournament_players, tournament_games)
-
-        for p in tournament_players:
-            p.set_learning(True)
 
         t1 = time.clock()
         print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
