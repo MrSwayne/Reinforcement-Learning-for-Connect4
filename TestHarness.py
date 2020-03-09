@@ -4,7 +4,7 @@ from Algorithms import *
 
 from BitBoard import *
 
-players = [Human("RED"),Bot("YELLOW", algorithm=AlphaBeta(6))]
+players = [Bot("YELLOW", algorithm=MCTS_TDUCT3(n=1500, memory="training/2/td3")), Human("RED")]
 def get_states(data, moves):
     states = {}
     boards = []
@@ -22,14 +22,6 @@ def get_states(data, moves):
 
 
 board = BitBoard(players)
+from Game import *
 
-
-board.place_sequence([0,6,1,6,2,6,3])
-print(board.winner)
-for p, b in board.boards.items():
-    print(b)
-
-
-print()
-for p, b in board.boards.items():
-    print(bin(b))
+GUI.play(board)

@@ -4,6 +4,9 @@ import os
 
 class IO:
 
+
+    map = {}
+
     def dump(self, data, path):
         cfg = configparser.ConfigParser()
         cfg.read("config.ini")
@@ -34,6 +37,13 @@ class IO:
     @staticmethod
     def load(path):
 
+        if path == "" or path is None:
+            return {}
+
+        if path in IO.map:
+            print("Already loaded ", path, " returning : ", len(IO.map[path]), " rows")
+            return IO.map[path]
+
         cfg = configparser.ConfigParser()
         cfg.read("config.ini")
         path = cfg["IO"]["data_path"] + path + ".csv"
@@ -58,6 +68,8 @@ class IO:
             print("IO error on ", path)
 
         print("Loaded data, length: ", len(data))
+
+        IO.map[path] = data
         return data
 
     @staticmethod

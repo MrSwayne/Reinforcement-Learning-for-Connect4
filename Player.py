@@ -83,6 +83,7 @@ class Bot(Player):
         return self.algorithm.get_move(state=board)
 
     def clear_memory(self):
+        print(self.colour, ": clearing memory")
         self.algorithm.clear_memory()
 
     def enable_learning(self, yesOrNo=True):

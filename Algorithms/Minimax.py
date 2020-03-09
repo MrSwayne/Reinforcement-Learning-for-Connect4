@@ -7,7 +7,6 @@ from Algorithms.Algorithm import *
 
 class AlphaBeta_h(Algorithm):
 
-
     def get_values(self):
         return self.scores
 

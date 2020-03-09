@@ -39,7 +39,9 @@ class MCTS(Algorithm):
             self.n = 250
 
     def clear_memory(self):
+        print("Clearing ", len(self.data))
         self.root = None
+        self.data = {}
 
     def set_memory(self, data):
         self.data = data
@@ -74,8 +76,8 @@ class MCTS(Algorithm):
 
         # Create game tree
 
-   #     if self.memory is None or self.learning is False:
-    #        self.clear_memory()
+        if self.learning is False:
+            self.root = None
 
         # If the tree has already been created
         if self.root is not None:
@@ -88,14 +90,9 @@ class MCTS(Algorithm):
                     self.root = child
                     break
 
-        if self.memory is None or self.learning is False:
-            d = {}
-        else:
-            d = self.data
-
         # If tree has not been initialised previously, or it couldn't find the opponent's move, the tree is discarded
         if self.root is None:
-            self.root = Tree.create_tree(state, d)
+            self.root = Tree.create_tree(state, self.data, self.learning)
 
         # Based on initial conditions like time per turn, or X amount of simulations etc.
         while self.should_continue():

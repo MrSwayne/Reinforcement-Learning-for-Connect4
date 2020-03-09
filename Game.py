@@ -18,77 +18,51 @@ def create_board(players):
 def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 100):
 
     tournament_number = 1
-
     training_results = []
     tournament_results = []
     i = 0
-    enemy.set_learning(False)
+    data = None
+    for p in players:
+        if data is None:
+            data = p.algorithm.get_memory()
+        else:
+            p.algorithm.set_memory(data)
 
-    best_winner = None
     while i < episodes:
-        print(i)
         #Train
-
-        best_winner = None
         if i != 0:
-
             for p in players:
                 p.set_learning(True)
 
-            print("Training ", i, "-", i + batch)
+            print("Training ", i, "-", i + batch - 1)
 
             t0 = time.clock()
-            completed_games, winners = simulation(players, num_episodes=batch)
+            completed_games, winners, avg_moves = simulation(players, num_episodes=batch)
             t1 = time.clock()
             print("Training ", batch, " games = ", t1-t0, " seconds")
-            training_results.append((completed_games, winners))
+            training_results.append((completed_games, winners, avg_moves))
             c = float("-inf")
-            for winner, count in winners.items():
-                if count >= c:
-                    best_winner = winner
-                    c = count
             i += batch
+            players[0].save("_" + str(i - 1))
         else:
             i += 1
 
-        if best_winner is None or best_winner is 0:
-            best_winner = players[0]
-        else:
-            best_winner.save("_" + str(i))
-
-        data = best_winner.algorithm.get_memory()
-        for p in players:
-            if p is not best_winner:
-                p.algorithm.set_memory(data)
-        tournament_players = [best_winner, enemy]
-        '''
-                if random.randint(0,10) < 5:
-            tournament_players = [best_winner, enemy]
-        else:
-            tournament_players = [enemy, best_winner]
-            '''
-
+        tournament_players = [players[0], enemy]
         #Tournament
         print("Tournament ", tournament_number, "\t", tournament_players)
-
-        t0 = time.clock()
-
 
         for p in tournament_players:
             p.set_learning(False)
 
-        completed_games, winners = simulation(tournament_players, tournament_games)
+        t0 = time.clock()
+        completed_games, winners, avg_moves = simulation(tournament_players, tournament_games)
 
         t1 = time.clock()
         print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
         print(winners)
         tournament_number += 1
+        tournament_results.append((completed_games, winners, avg_moves))
 
-        tournament_results.append((completed_games, winners))
-
-    print("Saving ", best_winner)
-    if best_winner is not None:
-        best_winner.save()
     return training_results, tournament_results
 
 def simulation(players, num_episodes=10, table = {}, debug=False):
@@ -96,50 +70,39 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
 
     state = create_board(players)
     winners = {}
-    finished_states = {}
-    try:
+    prev_total_states = 0
 
+    avg = 0
+    for i in range(num_episodes):
+        print("Game ", (i+1), end = " - " )
+        state.reset()
+        winner = None
+        while not state.game_over:
 
-        prev_total_states = 0
-        for i in range(num_episodes):
-            print("Game ", (i+1), end = " - " )
-            state.reset()
-            winner = None
-            while not state.game_over:
-
-                if state.get_state() not in table:
-                    table[state.get_state()] = 1
-                else:
-                    table[state.get_state()] += 1
-
-                if debug:
-                    state.print()
-
-                player = state.get_player_turn()
-                action = player.get_choice(state)
-                state.place(action)
-                winner = state.check_win()
-
-            if winner in winners:
-                winners[winner] += 1
+            if state.get_state() not in table:
+                table[state.get_state()] = 1
             else:
-                winners[winner] = 1
+                table[state.get_state()] += 1
 
-            print(winner, " ", len(state.moves))
-            if state.get_state() not in finished_states:
-                finished_states[state.get_state()] = 1
-            else:
-                print(state.moves)
-                finished_states[state.get_state()] += 1
+            if debug:
+                state.print()
 
-            completed_games.append(deepcopy(state))
+            player = state.get_player_turn()
 
-    except KeyboardInterrupt:
-        for p in players:
-            p.save()
-        return completed_games, winners
+            action = player.get_choice(state)
+            state.place(action)
+            winner = state.winner
+        avg += len(state.moves)
+        if winner in winners:
+            winners[winner] += 1
+        else:
+            winners[winner] = 1
 
-    return completed_games, winners
+        print(winner, " ", len(state.moves))
+
+        completed_games.append(deepcopy(state))
+
+    return completed_games, winners, avg / num_episodes
 
 def manual(players, sequence):
     completed_games = []

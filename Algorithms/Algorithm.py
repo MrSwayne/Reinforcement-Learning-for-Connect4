@@ -46,8 +46,8 @@ from Core.IO import IO
 class Tree:
 
     @staticmethod
-    def create_tree(state, data):
-        root = Node(parent=None, state=state, player=state.get_player_turn(), prev_action=-1, depth=0, data=data)
+    def create_tree(state, data, learn):
+        root = Node(parent=None, state=state, player=state.get_player_turn(), prev_action=-1, depth=0, data=data, learn=learn)
         return root
 class Node:
 
@@ -57,7 +57,7 @@ class Node:
             _state = deepcopy(self.state)
             _state.place(action)
             player = _state.get_player_turn()
-            child = Node(parent=self, state=_state, player=player, prev_action=action, depth= self.depth + 1, data=self.data)
+            child = Node(parent=self, state=_state, player=player, prev_action=action, depth= self.depth + 1, data=self.data, learn=self.learn)
             self.children.append(child)
 
             if self.best_child is None or child.V > self.best_child.V:
@@ -81,8 +81,8 @@ class Node:
     def V(self, value):
         self._V = value
 
-
-        self.data[self.get_state()] = (self.score, self.V, self.visit_count)
+        if self.learn:
+            self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
         if self.parent is not None:
             if self._V > self.parent.best_child.V:
@@ -94,16 +94,19 @@ class Node:
     def visit_count(self, value):
         self._visits = value
 
-        self.data[self.get_state()] = (self.score, self.V, self.visit_count)
+        if self.learn:
+            self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
     @score.setter
     def score(self, value):
         self._score = value
 
-        self.data[self.get_state()] = (self.score, self.V, self.visit_count)
+        if self.learn:
+            self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
-    def __init__(self, parent, state, player, prev_action, depth=0, data = {}):
+    def __init__(self, parent, state, player, prev_action, data, learn=True, depth=0):
         self.data = data
+        self.learn = learn
         self.children = []
         self.parent = parent
         self._visits = 0
@@ -122,9 +125,8 @@ class Node:
                 self._V = 0
             self.total_actions = state.get_actions()
 
-        if self.get_state() in self.data:
+        if (self.get_state() in self.data):
             (self._score, self._V, self._visits) = self.data[self.get_state()]
-
 
     def get_state(self):
         if self.state is None:
