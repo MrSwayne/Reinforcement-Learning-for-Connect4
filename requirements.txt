@@ -1,17 +1,6 @@
 numpy
 matplotlib
-sys
-copy
 pygame
-os
-csv
 pandas
-datetime
-time
-configparser
 keras
 pathlib
-os.path
-abc
-Algorithms
-random
