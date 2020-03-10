@@ -40,25 +40,42 @@ if mode == "TRAIN":
 
 elif mode == "SIMULATION":
     players = []
+
+    iter = []
     for p in cfg["SIMULATION"]["players"].split("\n"):
+
         player = Player.create_player(cfg[p])
         players.append(player)
         player.set_learning(False)
+        if cfg["SIMULATION"].get("iterative", None) == p:
+            iter.append(player)
 
+    if len(iter) > 0:
 
-    path =cfg["SIMULATION"].get("path", "")
-    if path is not "":
-        head, file = os.path.split(path)
-    completed_games, winners, avg_states = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint("episodes"), debug=False)
+        path = iter[0].algorithm.memory
+        head, tail = os.path.split(path)
+        print(path)
+        for file in sorted(IO.list(head), key=len):
+            if tail + "_" in file:
+                f, ext = os.path.splitext(file)
+                iter[0].algorithm.memory = head + "/" + f
+                iter[0].algorithm.load_memory()
+                completed_games, winners, avg_states = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint(
+                    "episodes"), debug=False)
+                print()
+                print(winners, "\t", avg_states)
 
-    print()
-    print(winners, "\t", avg_states)
+    else:
+        completed_games, winners, avg_states = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint("episodes"), debug=False)
 
-    if cfg["SIMULATION"].getboolean("train", False):
-        for p in players:
-            if isinstance(p, Bot):
-                p.save("_s")
-    GUI.draw(completed_games)
+        print()
+        print(winners, "\t", avg_states)
+
+        if cfg["SIMULATION"].getboolean("train", False):
+            for p in players:
+                if isinstance(p, Bot):
+                    p.save("_s")
+        GUI.draw(completed_games)
 
 elif mode == "PLAY":
     players = []

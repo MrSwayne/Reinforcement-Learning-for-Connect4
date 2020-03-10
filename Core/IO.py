@@ -34,6 +34,15 @@ class IO:
             print("Completed writing : ", len(table), " rows to ", path)
         else:
             print("IO error on ", path)
+
+
+    @staticmethod
+    def list(path):
+        cfg = configparser.ConfigParser()
+        cfg.read("config.ini")
+        path = cfg["IO"]["data_path"] + path
+        return os.listdir(path)
+
     @staticmethod
     def load(path):
 

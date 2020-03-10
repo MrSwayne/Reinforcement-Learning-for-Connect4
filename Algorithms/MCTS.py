@@ -53,7 +53,7 @@ class MCTS(Algorithm):
     def load_memory(self):
         self.data = IO.load(self.memory)
 
-    def save_memory(self, tag):
+    def save_memory(self, tag = ""):
         IO.write(self.memory + tag, self.data)
 
     def should_continue(self):

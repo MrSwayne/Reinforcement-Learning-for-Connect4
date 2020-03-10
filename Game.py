@@ -41,7 +41,6 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
             t1 = time.clock()
             print("Training ", batch, " games = ", t1-t0, " seconds")
             training_results.append((completed_games, winners, avg_moves))
-            c = float("-inf")
             i += batch
             players[0].save("_" + str(i - 1))
         else:
@@ -55,6 +54,9 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
             p.set_learning(False)
 
         t0 = time.clock()
+
+
+
         completed_games, winners, avg_moves = simulation(tournament_players, tournament_games)
 
         t1 = time.clock()
@@ -98,11 +100,14 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
         else:
             winners[winner] = 1
 
-        print(winner, " ", len(state.moves))
+        print(winner, " ", len(state.moves), " ", winners, end="\t\r")
 
         completed_games.append(deepcopy(state))
 
-    return completed_games, winners, avg / num_episodes
+    if num_episodes > 0:
+        avg /= num_episodes
+
+    return completed_games, winners, avg
 
 def manual(players, sequence):
     completed_games = []
