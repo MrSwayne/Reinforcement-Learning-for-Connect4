@@ -106,7 +106,7 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
 
     if num_episodes > 0:
         avg /= num_episodes
-
+    print()
     return completed_games, winners, avg
 
 def manual(players, sequence):

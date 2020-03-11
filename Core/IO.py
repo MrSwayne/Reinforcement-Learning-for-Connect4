@@ -23,9 +23,9 @@ class IO:
         cfg = configparser.ConfigParser()
         cfg.read("config.ini")
         path = cfg["IO"]["data_path"] + path + ".csv"
-        print("Attempting to write to ", path)
+        print("Attempting to write to ", path, end="\r")
         if IO.verify(path):
-            print("Writing to ", path)
+            print("Writing to ", path, end="\r")
             with open(path, 'w+', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
                 writer.writerow(["state", "state", "turn", "score", "value", "visits"])
@@ -57,9 +57,9 @@ class IO:
         cfg.read("config.ini")
         path = cfg["IO"]["data_path"] + path + ".csv"
         data = {}
-        print("Attemping to load ", path)
+        print("Attemping to load ", path, end="\r")
         if IO.verify(path):
-            print("Loading ", path)
+            print("Loading ", path, end="\t\t\r")
             with open(path, 'r+') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
                 headers = True
@@ -76,7 +76,7 @@ class IO:
         else:
             print("IO error on ", path)
 
-        print("Loaded data, length: ", len(data))
+        print("Loaded data, length: ", len(data), " from: ", path)
 
         IO.map[path] = data
         return data

@@ -7,7 +7,10 @@ import configparser
 from GUI import GameGUI as GUI
 from Algorithms import *
 from BitBoard import *
-random.seed(10)
+
+SEED = 12
+random.seed(SEED)
+print("SEED: ", SEED)
 cfg = configparser.ConfigParser()
 cfg.read("config.ini")
 players = []
@@ -54,7 +57,6 @@ elif mode == "SIMULATION":
 
         path = iter[0].algorithm.memory
         head, tail = os.path.split(path)
-        print(path)
         for file in sorted(IO.list(head), key=len):
             if tail + "_" in file:
                 f, ext = os.path.splitext(file)
