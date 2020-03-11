@@ -32,7 +32,7 @@ class MCTS(Algorithm):
         self.MIN_REWARD = -1
         self.data = {}
 
-        if memory is not None:
+        if memory is not "":
             self.load_memory()
 
         if not duration and not depth and not n:

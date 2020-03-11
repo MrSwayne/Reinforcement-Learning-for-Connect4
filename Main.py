@@ -8,7 +8,7 @@ from GUI import GameGUI as GUI
 from Algorithms import *
 from BitBoard import *
 
-SEED = 12
+SEED = 11
 random.seed(SEED)
 print("SEED: ", SEED)
 cfg = configparser.ConfigParser()
@@ -66,6 +66,7 @@ elif mode == "SIMULATION":
                     "episodes"), debug=False)
                 print()
                 print(winners, "\t", avg_states)
+                print()
 
     else:
         completed_games, winners, avg_states = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint("episodes"), debug=False)
@@ -84,8 +85,3 @@ elif mode == "PLAY":
     for p in cfg["PLAY"]["players"].split("\n"):
         players.append(Player.create_player(cfg[p]))
     GUI.play(BitBoard(players))
-
-for p in players:
-    if isinstance(p, Bot):
-        if isinstance(p.algorithm, MCTS):
-            p.save()
