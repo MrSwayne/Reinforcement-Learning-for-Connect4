@@ -37,7 +37,9 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
             print("Training ", i, "-", i + batch - 1)
 
             t0 = time.clock()
-            completed_games, winners, avg_moves = simulation(players, num_episodes=batch)
+
+            print(players)
+            completed_games, winners, avg_moves = simulation(players, num_episodes=batch, debug=False)
             t1 = time.clock()
             print("Training ", batch, " games = ", t1-t0, " seconds")
             training_results.append((completed_games, winners, avg_moves))
@@ -50,13 +52,9 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
         #Tournament
         print("Tournament ", tournament_number, "\t", tournament_players)
 
+        t0 = time.clock()
         for p in tournament_players:
             p.set_learning(False)
-
-        t0 = time.clock()
-
-
-
         completed_games, winners, avg_moves = simulation(tournament_players, tournament_games)
 
         t1 = time.clock()
@@ -91,9 +89,12 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
 
             player = state.get_player_turn()
 
+
             action = player.get_choice(state)
+
             state.place(action)
             winner = state.winner
+
         avg += len(state.moves)
         if winner in winners:
             winners[winner] += 1

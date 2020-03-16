@@ -140,6 +140,10 @@ class Node:
     def __str__(self):
         return str((self.score, self.V, self.visit_count))
 
+    def print_children(self):
+        for child in self.children:
+            print(child.prev_action, ":", str(child))
+
     def print(self, backwards=False):
 
         if backwards:

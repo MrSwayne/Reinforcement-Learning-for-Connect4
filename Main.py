@@ -8,7 +8,7 @@ from GUI import GameGUI as GUI
 from Algorithms import *
 from BitBoard import *
 
-SEED = 11
+SEED = 15
 random.seed(SEED)
 print("SEED: ", SEED)
 cfg = configparser.ConfigParser()
@@ -22,8 +22,9 @@ if mode == "TRAIN":
     batch = cfg["TRAIN"].getint("batch")
     tournament_games = cfg["TRAIN"].getint("tournament_games")
 
-    for p in cfg["TRAIN"]["players"].split("\n"):
-        players.append(Player.create_player(cfg[p]))
+    for p in cfg["TRAIN"]["players"].split(","):
+        player = Player.create_player(cfg[p])
+        players.append(player)
 
     enemy = Player.create_player(cfg[cfg["TRAIN"]["enemy"]])
     training_res, tournament_res = Game.experiment(players, enemy, episodes, batch, tournament_games)
@@ -45,7 +46,7 @@ elif mode == "SIMULATION":
     players = []
 
     iter = []
-    for p in cfg["SIMULATION"]["players"].split("\n"):
+    for p in cfg["SIMULATION"]["players"].split(","):
 
         player = Player.create_player(cfg[p])
         players.append(player)
@@ -82,6 +83,6 @@ elif mode == "SIMULATION":
 
 elif mode == "PLAY":
     players = []
-    for p in cfg["PLAY"]["players"].split("\n"):
+    for p in cfg["PLAY"]["players"].split(","):
         players.append(Player.create_player(cfg[p]))
     GUI.play(BitBoard(players))

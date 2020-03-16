@@ -4,6 +4,7 @@ from Algorithms.MCTS import *
 from threading import *
 from queue import Queue
 import time
+
 def drawGraph(screen, font, node, width, height, depth=0, max_depth=4):
     if depth == max_depth + 1:
       #  print()

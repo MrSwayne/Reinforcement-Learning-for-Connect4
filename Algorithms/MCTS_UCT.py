@@ -64,7 +64,6 @@ class MCTS_UCT(MCTS):
 
     def backpropagate(self, node, reward, num_steps):
 
-        player = node.player
         while node is not None:
 
             if reward >= 1:
