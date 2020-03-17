@@ -4,7 +4,7 @@ from Algorithms import *
 
 from BitBoard import *
 
-players = [Bot("YELLOW", algorithm=MCTS_TDUCT3(n=1500, memory="training/2/td3")), Human("RED")]
+players = [Bot("YELLOW", algorithm=MCTS_TDUCT3(n=1500, memory="")), Human("RED")]
 def get_states(data, moves):
     states = {}
     boards = []
@@ -24,4 +24,6 @@ def get_states(data, moves):
 board = BitBoard(players)
 from Game import *
 
+#board.set_state(players[0], 176208906699180)
+#board.set_state(players[1], 101400464162835)
 GUI.play(board)

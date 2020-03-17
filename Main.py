@@ -8,13 +8,13 @@ from GUI import GameGUI as GUI
 from Algorithms import *
 from BitBoard import *
 
-SEED = 15
-random.seed(SEED)
-print("SEED: ", SEED)
+
 cfg = configparser.ConfigParser()
 cfg.read("config.ini")
 players = []
-
+SEED = cfg["GENERAL"].getint("seed", 10)
+random.seed(SEED)
+print("SEED: ", SEED)
 mode = cfg["GENERAL"]["MODE"].upper()
 
 if mode == "TRAIN":
