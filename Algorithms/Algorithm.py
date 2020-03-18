@@ -88,13 +88,13 @@ class Node:
         if self.learn:
             self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
-        '''
+
         if self.parent is not None:
             if self._V > self.parent.best_child.V:
                 self.parent.best_child = self
             if self._V < self.parent.best_child.V:
                 self.parent.worst_child = self
-        '''
+
     @visit_count.setter
     def visit_count(self, value):
         self._visits = value
@@ -149,9 +149,9 @@ class Node:
             print(child.prev_action, ":", str(child))
 
     def dump(self):
-        string = str(self)
+        string = str((self.score, round(self.V, 4), self.visit_count)) + " "
         for child in self.children:
-            string += str(child.prev_action) +"_"+ str(child) + " "
+            string += str(child.prev_action) +"_"+ str((child.score, round(child.V, 4), child.visit_count)) + " "
         return string
 
 

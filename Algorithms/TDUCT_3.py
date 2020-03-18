@@ -54,17 +54,19 @@ class MCTS_TDUCT3(MCTS):
 
     def child_policy(self, node):
         highest_val = float("-inf")
-        best_child = None
 
+        best_children = []
         for child in node.children:
 
             if child.state.game_over:
                 return child
 
-            if child.V >= highest_val:
+            if child.V > highest_val:
+                best_children = []
                 highest_val = child.V
-                best_child = child
-        return best_child
+            if child.V >= highest_val:
+                best_children.append(child)
+        return random.choice(best_children)
 
     def backpropagate(self, node, reward, num_steps):
         reward *= (self.gamma ** (num_steps))
