@@ -3,7 +3,9 @@ import random
 from copy import deepcopy
 import math
 from datetime import datetime, timedelta
+from Core.Logger import LOGGER
 
+logger = LOGGER.attach(__name__)
 class Algorithm():
 
     def __init__(self):
@@ -41,17 +43,19 @@ class Algorithm():
     def set_learning(self, bool):
         self.learning = bool
 
-
-from Core.IO import IO
 class Tree:
 
     @staticmethod
     def create_tree(state, data, learn):
+
         root = Node(parent=None, state=state, player=state.get_player_turn(), prev_action=-1, depth=0, data=data, learn=learn)
+        logger.info(str(root.player) + " : Creating new tree, learning is " + str(learn))
         return root
 class Node:
 
     def create_children(self):
+
+        self.children = []
         for action in self.state.get_actions():
 
             _state = deepcopy(self.state)
@@ -84,12 +88,13 @@ class Node:
         if self.learn:
             self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
+        '''
         if self.parent is not None:
             if self._V > self.parent.best_child.V:
                 self.parent.best_child = self
             if self._V < self.parent.best_child.V:
                 self.parent.worst_child = self
-
+        '''
     @visit_count.setter
     def visit_count(self, value):
         self._visits = value
@@ -125,14 +130,13 @@ class Node:
                 self._V = 0
             self.total_actions = state.get_actions()
 
-        if (self.get_state() in self.data):
+        if self.get_state() in self.data:
             (self._score, self._V, self._visits) = self.data[self.get_state()]
 
     def get_state(self):
         if self.state is None:
             return None
         return self.state.get_state()
-
 
     def __repr__(self):
         return str(self.get_state())
@@ -144,20 +148,11 @@ class Node:
         for child in self.children:
             print(child.prev_action, ":", str(child))
 
-    def print(self, backwards=False):
-
-        if backwards:
-            temp_node = self
-            list = []
-            while (temp_node is not None):
-                list.append(temp_node)
-                temp_node = temp_node.parent
-
-            print(list)
-        else:
-            print(repr(self), "->", self.children)
-            for child in self.children:
-                child.print()
+    def dump(self):
+        string = str(self)
+        for child in self.children:
+            string += str(child.prev_action) +"_"+ str(child) + " "
+        return string
 
 
 class Random(Algorithm):

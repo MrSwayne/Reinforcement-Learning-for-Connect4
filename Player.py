@@ -1,6 +1,22 @@
 from abc import abstractmethod
 import Algorithms
+from Core import LOGGER
+
+logger = LOGGER.attach(__name__)
+
 class Player():
+
+    @staticmethod
+    def create_player(args):
+        if (args["type"].upper() == "HUMAN"):
+            logger.info("Creating Human " + args["colour"])
+            return Human(args["colour"])
+        else:
+            logger.info("Creating Bot " + args["colour"])
+            algorithm = Algorithms.create_algorithm(args)
+
+            return Bot(args["colour"], algorithm)
+
     num_players = 0
 
     colours = {
@@ -17,16 +33,9 @@ class Player():
     }
 
     def set_learning(self, bool):
+
+        logger.info("Setting learning to " + str(bool) + " for " + self.colour)
         self.algorithm.set_learning(bool)
-
-    @staticmethod
-    def create_player(args):
-        if(args["type"].upper() == "HUMAN"):
-            return Human(args["colour"])
-        else:
-            algorithm = Algorithms.create_algorithm(args)
-
-            return Bot(args["colour"], algorithm)
 
     def __init__(self, colour):
         Player.num_players += 1
@@ -85,9 +94,6 @@ class Bot(Player):
     def clear_memory(self):
         print(self.colour, ": clearing memory")
         self.algorithm.clear_memory()
-
-    def enable_learning(self, yesOrNo=True):
-        self.learning = yesOrNo
 
     def save(self, tag = ""):
         self.algorithm.save_memory(tag)

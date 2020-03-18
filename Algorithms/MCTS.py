@@ -1,9 +1,9 @@
 from Algorithms.Algorithm import *
 from Core.IO import IO
+from Core import LOGGER
 
+#logger = LOGGER.attach(__name__)
 class MCTS(Algorithm):
-
-
 
     def get_values(self):
         list = {}
@@ -16,8 +16,9 @@ class MCTS(Algorithm):
     def get_name(self):
         return "MCTS"
 
-    def __init__(self, memory, duration=None, depth=None, n=1000, e=0.15, g=0.9, l=1, debug=False):
+    def __init__(self, memory = None, duration=None, depth=None, n=1000, e=0.15, g=0.9, l=1, debug=False):
         super().__init__()
+
         self.e = e
         self.duration = duration
         self.depth = depth
@@ -32,7 +33,9 @@ class MCTS(Algorithm):
         self.MIN_REWARD = -1
         self.data = {}
 
-        if memory is not "":
+
+        logger.info("n: " + str(self.n) + " g: " + str(self.gamma) + " e: " + str(self.e) + " mem: " + str(self.memory))
+        if memory is not None or memory is not "":
             self.load_memory()
 
         if not duration and not depth and not n:
@@ -76,17 +79,18 @@ class MCTS(Algorithm):
 
         # Create game tree
 
-        if self.learning is False:
-            self.root = None
-
         # If the tree has already been created
-        if self.root is not None:
-            children = self.root.children
-            self.root = None
 
+        if self.root is not None:
+            self.expand(self.root)
+            children = self.root.children
+
+            self.root = None
+          #  logger.info("Checking..")
             # Select child to be the opponent's move, as opposed to discarding the whole search tree
             for child in children:
-                if child.get_state() == state.get_state(child.player):
+                if child.get_state() == state.get_state():
+           #         logger.info("FOUND!")
                     self.root = child
                     break
 

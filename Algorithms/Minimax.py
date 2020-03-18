@@ -1,7 +1,7 @@
 import copy
 from threading import *
 from queue import Queue
-
+from Core import LOGGER
 from Algorithms.Algorithm import *
 
 
@@ -12,9 +12,14 @@ class AlphaBeta_h(Algorithm):
 
     def __init__(self, max_depth = 4):
         super().__init__()
+
         self.max = None
         self.min = None
         self.max_depth = max_depth
+
+        logger = LOGGER.attach(__name__)
+        logger.info("Depth: " + str(max_depth))
+
         self.scores = {}
 
     def get_move(self, state):

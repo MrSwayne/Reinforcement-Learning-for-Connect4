@@ -1,20 +1,13 @@
-import pygame
-from copy import deepcopy
 from BitBoard import *
-import time
-from Player import *
-from Algorithms.MCTS_UCT import *
 from Algorithms.MCTS import *
-#from keras.utils import to_categorical
 import time
-import os
-import csv
-import pandas
-from datetime import datetime
+from Core import LOGGER
+
 
 def create_board(players):
     return BitBoard(players)
 
+logger = LOGGER.attach(__name__)
 def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 100):
 
     tournament_number = 1
@@ -35,13 +28,16 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
                 p.set_learning(True)
 
             print("Training ", i, "-", i + batch - 1)
-
+            logger.info("Training " + str(i) + "-" + str(i + batch - 1))
             t0 = time.clock()
 
             print(players)
+            logger.info("Training: " + str(players))
             completed_games, winners, avg_moves = simulation(players, num_episodes=batch, debug=False)
             t1 = time.clock()
             print("Training ", batch, " games = ", t1-t0, " seconds")
+            logger.info("Training " + str(batch) + " games = " + str(t1-t0) + " seconds")
+            logger.info(str(winners) + " " + str(avg_moves))
             training_results.append((completed_games, winners, avg_moves))
             i += batch
             players[0].save("_" + str(i - 1))
@@ -55,11 +51,15 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
         t0 = time.clock()
         for p in tournament_players:
             p.set_learning(False)
+
+        logger.info("Tournament: " + str(players))
         completed_games, winners, avg_moves = simulation(tournament_players, tournament_games)
 
         t1 = time.clock()
         print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
+        logger.info("Tournament " + str(tournament_games) + " games = " + str(t1 - t0) + " seconds")
         print(winners)
+        logger.info(winners)
         tournament_number += 1
         tournament_results.append((completed_games, winners, avg_moves))
 
@@ -102,7 +102,8 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
             winners[winner] = 1
 
         print(winner, " ", len(state.moves), " ", winners, end="\t\r")
-
+        logger.info("Game " + str(i+1) + " " + str(winner))
+        logger.info("End state: " + str(state.get_state()) + str(state.moves))
         completed_games.append(deepcopy(state))
 
     if num_episodes > 0:

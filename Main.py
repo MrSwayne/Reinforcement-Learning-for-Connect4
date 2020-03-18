@@ -1,22 +1,32 @@
-import os
-#import tensorflow as tf
-from Player import *
-import time
-import Game as Game
+from Core.Logger import LOGGER
 import configparser
+
+cfg = configparser.ConfigParser()
+cfg.read("config.ini")
+
+log_path = cfg["IO"]["log_path"] + cfg["LOGGING"].get("file_name", "log.out")
+LOGGER.filename = log_path
+logger = LOGGER.attach(__name__)
+
+from Core.IO import IO
+IO.verify(cfg["IO"]["log_path"])
+
+
+#logger.info({section: dict(cfg[section]) for section in cfg.sections()})
+from Player import *
+import Game as Game
+
 from GUI import GameGUI as GUI
 from Algorithms import *
 from BitBoard import *
 
-
-cfg = configparser.ConfigParser()
-cfg.read("config.ini")
 players = []
 SEED = cfg["GENERAL"].getint("seed", 10)
 random.seed(SEED)
-print("SEED: ", SEED)
+logger.info("SEED: " + str(SEED))
 mode = cfg["GENERAL"]["MODE"].upper()
 
+logger.info("MODE: " + mode)
 if mode == "TRAIN":
     episodes = cfg["TRAIN"].getint("episodes")
     batch = cfg["TRAIN"].getint("batch")
@@ -30,16 +40,20 @@ if mode == "TRAIN":
     training_res, tournament_res = Game.experiment(players, enemy, episodes, batch, tournament_games)
 
     print("--\nTraining--\n")
+    logger.info("-------Training results--------")
     for completed_games, winners, avg_moves in training_res:
 
         print(winners, "\t", avg_moves)
+        logger.info(str(winners) + " " + str(avg_moves))
         print()
 
     print("--\nTournament--\n")
+    logger.info("-------Tournament results--------")
     for completed_games, winners, avg_moves in tournament_res:
         avg = 0
 
         print(winners, "\t", avg_moves)
+        logger.info(str(winners) + " " + str(avg_moves))
         print()
 
 elif mode == "SIMULATION":
@@ -47,22 +61,23 @@ elif mode == "SIMULATION":
 
     iter = []
     for p in cfg["SIMULATION"]["players"].split(","):
-
+        print(p)
         player = Player.create_player(cfg[p])
         players.append(player)
         player.set_learning(False)
         if cfg["SIMULATION"].get("iterative", None) == p:
             iter.append(player)
-
     if len(iter) > 0:
 
         path = iter[0].algorithm.memory
         head, tail = os.path.split(path)
         for file in sorted(IO.list(head), key=len):
             if tail + "_" in file:
+                logger.info("found " + str(file))
                 f, ext = os.path.splitext(file)
                 iter[0].algorithm.memory = head + "/" + f
                 iter[0].algorithm.load_memory()
+
                 completed_games, winners, avg_states = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint(
                     "episodes"), debug=False)
                 print()

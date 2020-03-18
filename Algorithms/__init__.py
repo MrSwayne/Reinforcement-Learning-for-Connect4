@@ -5,14 +5,15 @@ from Algorithms.MCTS_TDUCT import *
 from Algorithms.TDUCT_2 import *
 from Algorithms.TDUCT_3 import *
 from Algorithms.Minimax import *
+from Core import LOGGER
 
 algorithms = ["MINIMAX", "TDUCT", "UCT", "RANDOM"]
-
 def create_algorithm(args):
-    algorithm = args["type"]
 
+    algorithm = args["type"]
+    logger.info("Creating " + algorithm)
     if algorithm.upper() == "UCT":
-        return MCTS_UCT(n=args.getint("n"), g=args.getfloat("discount_factor"),
+     return MCTS_UCT(n=args.getint("n"), g=args.getfloat("discount_factor"),
                                         e=args.getfloat("exploration"), memory = args.get("memory", ""))
     elif algorithm.upper() == "TDUCT":
         return MCTS_TDUCT(n=args.getint("n"), g=args.getfloat("discount_factor"),

@@ -1,16 +1,26 @@
-import logging.config
+import logging
 
 class Logger:
 
+    def __init__(self, filename):
+        self.filename = filename
+        self.loggers = {}
 
-    def __init__(self, tag):
-        self.logger = logging.getLogger(tag)
-        self.level = logging.DEBUG
-        self.tag = tag
-        fh = logging.FileHandler(tag + ".log")
-        fh.setLevel(logging.DEBUG)
-        self.logger.addHandler(fh)
+    def attach(self, name, filename = None):
+        print("Attaching " + str(name))
+        if name in self.loggers:
+            return self.loggers[name]
 
-    def log(self, msg, lvl = None):
-        if lvl is not None:
-            self.level = lvl
+        logger = logging.getLogger(name)
+        if filename is None:
+            fh = logging.FileHandler(self.filename + ".log")
+        else:
+            fh = logging.FileHandler(filename + ".log")
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+        self.loggers[name] = logger
+        return logger
+
+LOGGER = Logger("out")

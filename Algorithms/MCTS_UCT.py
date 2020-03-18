@@ -2,7 +2,7 @@ from Algorithms.MCTS import *
 
 class MCTS_UCT(MCTS):
 
-    def __init__(self,memory,  duration=None, depth=None, n=2000, e=1.414, g=0.9, l=1, debug=False):
+    def __init__(self,memory = None,  duration=None, depth=None, n=2000, e=1.414, g=0.9, l=1, debug=False):
         super().__init__(memory, duration, depth, n, e, g, l, debug)
 
         self.MAX_REWARD = 1
