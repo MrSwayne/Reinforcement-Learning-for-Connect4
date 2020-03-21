@@ -7,7 +7,7 @@ from BitBoard import *
 
 
 
-players = [Bot("YELLOW", algorithm=MCTS_UCT(n=1000, e = 0.25)), Human("RED")]
+players = [Bot("YELLOW", algorithm=AlphaBeta_V2(4)),Bot("BLUE", algorithm=Minimax(5))]
 def get_states(data, moves):
     states = {}
     boards = []

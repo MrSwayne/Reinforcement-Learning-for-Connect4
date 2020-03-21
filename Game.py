@@ -102,7 +102,7 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
             winners[winner] = 1
 
         print(winner, " ", len(state.moves), " ", winners, end="\t\r")
-        logger.info("Game " + str(i+1) + " " + str(winner))
+        logger.info("Game " + str(i+1) + " " + str(winner) + " " + str(winners))
         logger.info("End state: " + str(state.get_state()) + str(state.moves))
         completed_games.append(deepcopy(state))
 

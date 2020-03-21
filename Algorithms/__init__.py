@@ -28,12 +28,10 @@ def create_algorithm(args):
     elif algorithm.upper() == "MINIMAX":
         return Minimax(args.getint("depth"))
     elif algorithm.upper() == "ALPHABETA":
-        return AlphaBeta(args.getint("depth"))
-    elif algorithm.upper() == "ALPHABETA_H":
-        return AlphaBeta_h(args.getint("depth"))
+        return AlphaBeta_V2(args.getint("depth"))
     elif algorithm.upper() == "RANDOM":
         return Random()
-
     else:
+        logger.warning("Defaulting " + str(args["type"] + " to random!"))
         print("Defaulting ", args["type"], " to random.")
         return Random()

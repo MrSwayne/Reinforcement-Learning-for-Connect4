@@ -10,7 +10,7 @@ logger = LOGGER.attach(__name__)
 
 from Core.IO import IO
 IO.verify(cfg["IO"]["log_path"])
-
+print("Logging to: ", log_path)
 
 #logger.info({section: dict(cfg[section]) for section in cfg.sections()})
 from Player import *

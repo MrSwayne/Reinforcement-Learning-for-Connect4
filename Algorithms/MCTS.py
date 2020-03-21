@@ -117,7 +117,8 @@ class MCTS(Algorithm):
 
         best_child = self.child_policy(self.root)
 
-        logger.info(str(self.root.player) + " : " + str(self.root.dump()) + " : " + str(best_child.prev_action))
+
+        logger.debug(str(self.root.player) + " : " + str(self.root.dump()) + " : " + str(best_child.prev_action))
         self.root = best_child
 
         return best_child.prev_action

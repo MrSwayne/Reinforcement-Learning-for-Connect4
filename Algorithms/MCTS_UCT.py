@@ -30,14 +30,20 @@ class MCTS_UCT(MCTS):
         return node
 
     def child_policy(self, node):
+        '''
         highest_val = float("-inf")
-        best_child = None
+        best_children = []
 
         for child in node.children:
-            if child.score >= highest_val:
-                highest_val = child.score
-                best_child = child
-        return best_child
+            if child.visit_count > highest_val:
+                best_children = []
+                highest_val = child.visit_count
+            if child.visit_count >= highest_val:
+                best_children.append(child)
+
+        return random.choice(best_children)
+        '''
+        return self.tree_policy(node)
 
     def tree_policy(self, node):
         max_score = float('-inf')

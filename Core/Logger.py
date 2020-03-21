@@ -7,7 +7,7 @@ class Logger:
         self.loggers = {}
 
     def attach(self, name, filename = None):
-        print("Attaching " + str(name))
+        print("Attaching Logger: " + str(name))
         if name in self.loggers:
             return self.loggers[name]
 
@@ -16,7 +16,7 @@ class Logger:
             fh = logging.FileHandler(self.filename + ".log")
         else:
             fh = logging.FileHandler(filename + ".log")
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
         fh.setFormatter(formatter)
         logger.addHandler(fh)
