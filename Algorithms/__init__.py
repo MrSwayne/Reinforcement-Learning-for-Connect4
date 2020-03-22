@@ -26,9 +26,9 @@ def create_algorithm(args):
         return MCTS_TDUCT3(n=args.getint("n"), g=args.getfloat("discount_factor"),
                                            e=args.getfloat("exploration"), memory= args.get("memory", ""))
     elif algorithm.upper() == "MINIMAX":
-        return Minimax(args.getint("depth"))
+        return Minimax(use_heuristic= args.getboolean("heuristic",False),max_depth= args.getint("depth"))
     elif algorithm.upper() == "ALPHABETA":
-        return AlphaBeta_V2(args.getint("depth"))
+        return AlphaBeta_V2(use_heuristic= args.getboolean("heuristic",False), max_depth= args.getint("depth"))
     elif algorithm.upper() == "RANDOM":
         return Random()
     else:

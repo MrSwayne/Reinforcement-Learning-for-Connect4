@@ -71,19 +71,14 @@ class MCTS_TDUCT(MCTS):
     def backpropagate(self, node, reward, num_steps):
         reward *= (self.gamma ** (num_steps))
 
-        alpha = 1 / (1 + node.visit_count)
-        node.V = node.V + alpha * (reward - node.V)
+        target = reward - node.V
 
         while node is not None:
 
-            if reward < 0:
+            if target >= 0:
                 node.score += 1
-
             node.visit_count += 1
-
-            if node.parent is not None:
-                reward *= -self.gamma
-                alpha = 1 / (node.parent.visit_count)
-                node.parent.V = node.parent.V + alpha * (reward + self.gamma * node.V - node.parent.V)
+            alpha = max(1 / (1 + node.visit_count), 0.005)
+            node.V = node.V + alpha * target - node.V
 
             node = node.parent

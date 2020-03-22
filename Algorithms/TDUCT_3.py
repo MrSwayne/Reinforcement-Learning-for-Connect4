@@ -69,9 +69,10 @@ class MCTS_TDUCT3(MCTS):
         return random.choice(best_children)
 
     def backpropagate(self, node, reward, num_steps):
+
         reward *= (self.gamma ** (num_steps))
 
-        alpha =max(1 / (node.visit_count + 1), 0.005)
+        alpha = max(1 / (node.visit_count + 1), 0.005)
         node.V = node.V + alpha * (reward - node.V)
 
         while node is not None:

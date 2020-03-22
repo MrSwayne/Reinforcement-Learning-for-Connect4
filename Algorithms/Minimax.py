@@ -149,13 +149,14 @@ class AlphaBeta_V2(Algorithm):
 
         return total_score
 
-    def __init__(self, max_depth = 4):
+    def __init__(self, use_heuristic=True, max_depth = 4):
         super().__init__()
 
         self.max = None
         self.min = None
         self.max_depth = max_depth
         self.scores = {}
+        self.use_heuristic = True
 
     def get_move(self, state):
         self.max = state.get_player_turn()
@@ -174,11 +175,15 @@ class AlphaBeta_V2(Algorithm):
                 best_score = score
             if score >= best_score:
                 best_children.append(action)
+        logger.debug(str(state.get_player_turn()) + " " + str(self.scores))
         return random.choice(best_children)
 
     def alphabeta(self, state, depth, alpha, beta, max_layer):
-        if depth == 0:
-            return self.heuristic(state, state.get_player_turn(), state.win_span)
+        if depth == 1:
+            if self.use_heuristic is True:
+                return self.heuristic(state, state.get_player_turn(), state.win_span)
+            else:
+                return 0
         if state.game_over:
             if state.winner == self.max:
                 return 100 + depth
@@ -219,13 +224,13 @@ class Minimax(Algorithm):
     def get_values(self):
         return self.scores
 
-    def __init__(self, max_depth = 4):
+    def __init__(self, use_heuristic = True, max_depth = 4):
         super().__init__()
         self.max = None
         self.min = None
         self.max_depth = max_depth
         self.scores = {}
-
+        self.use_heuristic = use_heuristic
     def get_move(self, state):
         self.max = state.get_player_turn()
         self.min = state.get_player_turn(prev=True)
@@ -242,6 +247,7 @@ class Minimax(Algorithm):
             if score >= max_score:
                 best_action = action
                 max_score = score
+        logger.debug(str(state.get_player_turn()) + " " + str(self.scores))
         return best_action
 
     def minimax(self, state, depth = 0):
@@ -256,7 +262,10 @@ class Minimax(Algorithm):
                 return 0
 
         if depth == self.max_depth:
-            return self.heuristic(state, state.get_player_turn(), state.win_span)
+            if self.use_heuristic is True:
+                return self.heuristic(state, state.get_player_turn(), state.win_span)
+            else:
+                return 0
 
         max_score = float("-inf")
         min_score = float("inf")

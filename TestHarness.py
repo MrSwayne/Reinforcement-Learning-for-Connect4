@@ -5,9 +5,11 @@ from Algorithms import *
 from BitBoard import *
 
 
+import multiprocessing as mp
 
+print(mp.cpu_count())
 
-players = [Bot("YELLOW", algorithm=AlphaBeta_V2(4)),Bot("BLUE", algorithm=Minimax(5))]
+players = [Bot("YELLOW", algorithm=AlphaBeta_V2(4)),Bot("BLUE", algorithm=AlphaBeta_V2(False,5))]
 def get_states(data, moves):
     states = {}
     boards = []

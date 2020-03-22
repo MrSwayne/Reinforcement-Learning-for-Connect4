@@ -127,7 +127,7 @@ class Node:
         self._V = 0.5
         if state is not None:
             if state.game_over:
-                self._V = 0
+                self._V = 1
             self.total_actions = state.get_actions()
 
         if self.get_state() in self.data:

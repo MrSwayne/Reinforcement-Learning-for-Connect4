@@ -14,12 +14,13 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
     training_results = []
     tournament_results = []
     i = 0
-    data = None
+    _p = None
     for p in players:
-        if data is None:
-            data = p.algorithm.get_memory()
+        if _p is None:
+            _p = p
         else:
-            p.algorithm.set_memory(data)
+            if isinstance(type(_p.algorithm), type(p.algorithm)):
+                p.algorithm.set_memory(_p.algorithm.get_memory())
 
     while i < episodes:
         #Train
@@ -109,6 +110,10 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
     if num_episodes > 0:
         avg /= num_episodes
     print()
+
+    logger.debug("Completed Simulation of " + str(num_episodes))
+    for game in completed_games:
+        logger.debug(str(game.get_state()) + " : " + str(game.winner))
     return completed_games, winners, avg
 
 def manual(players, sequence):
