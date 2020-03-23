@@ -80,8 +80,14 @@ class MCTS(Algorithm):
         # Create game tree
 
         # If the tree has already been created
+        if self.learning is False:
+            self.root = None
 
         if self.root is not None:
+
+            if not self.learning:
+                self.root.parent = None
+
             self.expand(self.root)
             children = self.root.children
 
@@ -93,6 +99,8 @@ class MCTS(Algorithm):
            #         logger.info("FOUND!")
                     self.root = child
                     break
+
+
 
         # If tree has not been initialised previously, or it couldn't find the opponent's move, the tree is discarded
         if self.root is None:
@@ -135,7 +143,6 @@ class MCTS(Algorithm):
     def simulation(self, node):
         terminal_state, num_steps = self.rollout_policy(node.state)
         reward = self.reward(node, terminal_state)
-
         return reward, num_steps
 
     def expand(self, node):

@@ -1,14 +1,12 @@
-from BitBoard import *
+from Boards.BitBoard import *
 from Algorithms.MCTS import *
 import time
 from Core import LOGGER
 
 
-def create_board(players):
-    return BitBoard(players)
 
 logger = LOGGER.attach(__name__)
-def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 100):
+def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_games = 100):
 
     tournament_number = 1
     training_results = []
@@ -34,7 +32,7 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
 
             print(players)
             logger.info("Training: " + str(players))
-            completed_games, winners, avg_moves = simulation(players, num_episodes=batch, debug=False)
+            completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False)
             t1 = time.clock()
             print("Training ", batch, " games = ", t1-t0, " seconds")
             logger.info("Training " + str(batch) + " games = " + str(t1-t0) + " seconds")
@@ -54,30 +52,32 @@ def experiment(players, enemy, episodes = 500, batch= 100, tournament_games = 10
             p.set_learning(False)
 
         logger.info("Tournament: " + str(players))
-        completed_games, winners, avg_moves = simulation(tournament_players, tournament_games)
+        completed_games, winners, avg_moves = simulation(board, tournament_players, tournament_games)
 
         t1 = time.clock()
         print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
         logger.info("Tournament " + str(tournament_games) + " games = " + str(t1 - t0) + " seconds")
-        print(winners)
+        print(winners, " ", avg_moves)
         logger.info(winners)
         tournament_number += 1
         tournament_results.append((completed_games, winners, avg_moves))
 
     return training_results, tournament_results
 
-def simulation(players, num_episodes=10, table = {}, debug=False):
+def simulation(board, players, num_episodes=10, table = {}, debug=False):
     completed_games = []
 
-    state = create_board(players)
+    state = board(players)
     winners = {}
     prev_total_states = 0
 
     avg = 0
+    print(players)
     for i in range(num_episodes):
         print("Game ", (i+1), end = " - " )
         state.reset()
         winner = None
+
         while not state.game_over:
 
             if state.get_state() not in table:
@@ -113,12 +113,12 @@ def simulation(players, num_episodes=10, table = {}, debug=False):
 
     logger.debug("Completed Simulation of " + str(num_episodes))
     for game in completed_games:
-        logger.debug(str(game.get_state()) + " : " + str(game.winner))
+        logger.debug(str(game.get_state()) + " : " + str(game.winner) + " : " +  str(game.moves) )
     return completed_games, winners, avg
 
-def manual(players, sequence):
+def manual(board, players, sequence):
     completed_games = []
-    state = create_board(players)
+    state = board(players)
     bools = []
     for move in sequence:
         bools.append(state.place(move))

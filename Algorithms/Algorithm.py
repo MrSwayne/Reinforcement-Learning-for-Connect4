@@ -40,8 +40,8 @@ class Algorithm():
     def get_values(self):
         return []
 
-    def set_learning(self, bool):
-        self.learning = bool
+    def set_learning(self, booli):
+        self.learning = booli
 
 class Tree:
 

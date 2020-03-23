@@ -1,15 +1,9 @@
 from GUI import GameGUI as GUI
 from Player import *
 from Algorithms import *
+from Boards import *
 
-from BitBoard import *
-
-
-import multiprocessing as mp
-
-print(mp.cpu_count())
-
-players = [Bot("YELLOW", algorithm=AlphaBeta_V2(4)),Bot("BLUE", algorithm=AlphaBeta_V2(False,5))]
+players = [Bot("RED", algorithm=MCTS_TDUCT3(n=1000,memory="train/ttt/1_100")),Bot("RED", algorithm=MCTS_TDUCT3(n=1000, memory="train/ttt/1_150"))]
 def get_states(data, moves):
     states = {}
     boards = []
@@ -25,26 +19,17 @@ def get_states(data, moves):
             print(boards.index(states[state]), ". ", state, " ", node)
 
 
+import Game
 
-board = BitBoard(players)
-from Game import *
-'''
-board.place_sequence([3, 3, 3, 3, 2, 1, 2, 2, 2, 4, 4, 5, 5, 5, 0, 3, 0, 2,
-2, 1, 0, 0, 3, 4, 0, 4, 4, 4, 5, 0, 5, 5])
-print(players[0].get_choice(board))
+#ame.simulation(TicBoard, players, 10)
+board = TicBoard(players)
 
-players[0].algorithm.root.print()
+players[0].get_choice(board)
+print(players[0].algorithm.root.parent.dump())
 
-board.place(1)
-print(board.boards)
-print(board.winner)
-print(players[1].get_choice(board))
-players[1].algorithm.root.print()
-board.place_sequence([1])
-print(board.boards)
-print(board.winner)
-#board.set_state(players[0], 176208906699180)
-#board.set_state(players[1], 101400464162835)
-GUI.draw([board])
-'''
-GUI.play(board)
+players[1].get_choice(board)
+print(players[1].algorithm.root.parent.dump())
+
+n = 0
+
+GUI.draw(board)

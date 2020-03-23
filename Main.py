@@ -18,7 +18,7 @@ import Game as Game
 
 from GUI import GameGUI as GUI
 from Algorithms import *
-from BitBoard import *
+from Boards import *
 
 players = []
 SEED = cfg["GENERAL"].getint("seed", 10)
@@ -27,6 +27,8 @@ logger.info("SEED: " + str(SEED))
 mode = cfg["GENERAL"]["MODE"].upper()
 
 logger.info("MODE: " + mode)
+
+board = get_board(cfg["GENERAL"].get("board", ConnectBoard))
 if mode == "TRAIN":
     episodes = cfg["TRAIN"].getint("episodes")
     batch = cfg["TRAIN"].getint("batch")
@@ -37,7 +39,7 @@ if mode == "TRAIN":
         players.append(player)
 
     enemy = Player.create_player(cfg[cfg["TRAIN"]["enemy"]])
-    training_res, tournament_res = Game.experiment(players, enemy, episodes, batch, tournament_games)
+    training_res, tournament_res = Game.experiment(board, players, enemy, episodes, batch, tournament_games)
 
     print("--\nTraining--\n")
     logger.info("-------Training results--------")
@@ -64,7 +66,7 @@ elif mode == "SIMULATION":
         print(p)
         player = Player.create_player(cfg[p])
         players.append(player)
-        player.set_learning(False)
+        player.set_learning(cfg["SIMULATION"].getboolean("learn", False))
         if cfg["SIMULATION"].get("iterative", None) == p:
             iter.append(player)
     if len(iter) > 0:
@@ -78,14 +80,14 @@ elif mode == "SIMULATION":
                 iter[0].algorithm.memory = head + "/" + f
                 iter[0].algorithm.load_memory()
 
-                completed_games, winners, avg_states = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint(
+                completed_games, winners, avg_states = Game.simulation(board, players, num_episodes=cfg["SIMULATION"].getint(
                     "episodes"), debug=False)
                 print()
                 print(winners, "\t", avg_states)
                 print()
 
     else:
-        completed_games, winners, avg_states = Game.simulation(players, num_episodes=cfg["SIMULATION"].getint("episodes"), debug=False)
+        completed_games, winners, avg_states = Game.simulation(board, players, num_episodes=cfg["SIMULATION"].getint("episodes"), debug=False)
 
         print()
         print(winners, "\t", avg_states)

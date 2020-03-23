@@ -46,7 +46,7 @@ def drawGraph(screen, font, node, width, height, depth=0, max_depth=4):
     screen.blit(visitText, (circle.centerx - circle.width / 2 + 10, circle.centery - circle.height / 2 + 40))
 
 
-def draw(states, width=1280, height=720):
+def draw(*states, width=1280, height=720):
     pygame.init()
     screen = pygame.display.set_mode((width, height))
 
@@ -133,7 +133,7 @@ def play(board, simulation=False, W = 1280, H=720):
     init_offset_y = 30
 
     board_map = {}
-
+    undos = []
     t0 = time.clock()
     paused_time = 0
     while not done:
@@ -166,9 +166,9 @@ def play(board, simulation=False, W = 1280, H=720):
                     depth = 4
                     drawGraph(screen=screen, font=graph_font, node=p.algorithm.root, width=w, height=h)
 
-                    if p.algorithm.root.parent is not None:
-                        drawGraph(screen=screen, font=graph_font, node=p.algorithm.root.parent, width=w,
-                                  height=h + (60 * (depth + 1)), max_depth=depth)
+               #     if p.algorithm.root.parent is not None:
+                #        drawGraph(screen=screen, font=graph_font, node=p.algorithm.root.parent, width=w,
+                 #                 height=h + (60 * (depth + 1)), max_depth=depth)
 
                     if p.algorithm.root.best_child is not None:
                         best_action = p.algorithm.root.best_child.prev_action
@@ -200,7 +200,7 @@ def play(board, simulation=False, W = 1280, H=720):
                 '''
                 pygame.draw.rect(screen, colour, pygame.Rect(x_offset, y_offset, block_size, block_size))
 
-                board_map[x_offset - (x_offset % block_size), y_offset - (y_offset % block_size)] = c
+                board_map[x_offset - (x_offset % block_size), y_offset - (y_offset % block_size)] = (r,c)
                 x_offset += block_size + 1
             x_offset = init_offset_x
             y_offset += block_size + 1
@@ -209,16 +209,16 @@ def play(board, simulation=False, W = 1280, H=720):
             if isinstance(p, Bot):
                # if isinstance(p.algorithm, MCTS):
                     y_offset += 15
-
+                    '''
                     vals = deepcopy(p.algorithm.get_values())
                     for a, value in vals.items():
-                        x = x_offset + block_size * (a) + block_size/4
+                        x = x_offset + block_size * (a[1]) + block_size/4
                         y = y_offset
                         f = pygame.font.SysFont("microsoftsansserif", 10)
                         txt = f.render(str(round(value, 3)), True, p.get_rgb())
-
+                    
                         screen.blit(txt, (x, y))
-
+                    '''
         if board.game_over:
             winner = board.winner
 
@@ -267,11 +267,19 @@ def play(board, simulation=False, W = 1280, H=720):
        # clock_text = font.render(str(t), True, Player.colours["WHITE"])
        # screen.blit(clock_text, (clock_box.centerx - clock_box.width / 2 + 10, clock_box.centery - clock_box.height / 2 + 5))
 
+
         reset_button = pygame.Rect(x_offset, y_offset + 15, 80, 30)
         reset_text = font.render("Reset", True, Player.colours["WHITE"])
         pygame.draw.rect(screen, Player.colours["AQUA"], reset_button)
         screen.blit(reset_text, (
         reset_button.centerx - reset_button.width / 2 + 10, reset_button.centery - reset_button.height / 2 + 5))
+
+        step_button = pygame.Rect(x_offset, y_offset + 30 + reset_button.height, 80, 30)
+        step_text = font.render("Step", True, Player.colours["WHITE"])
+        pygame.draw.rect(screen, Player.colours["AQUA"], step_button)
+        screen.blit(step_text, (
+        step_button.centerx - step_button.width / 2 + 10, step_button.centery - step_button.height / 2 + 5))
+
 
         play_button = pygame.Rect(reset_button.right + 20, reset_button.top, 80, 30)
         play_text_f = font.render(play_text, True, Player.colours["WHITE"])
@@ -290,7 +298,9 @@ def play(board, simulation=False, W = 1280, H=720):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if reset_button.collidepoint(event.pos):
                     board.reset()
+                    undos.clear()
                     t0 = time.clock()
+
                     print("-----------------------------------------------------")
 
                 if play_button.collidepoint(event.pos):
@@ -304,9 +314,19 @@ def play(board, simulation=False, W = 1280, H=720):
                         t0 += paused_time
                         paused_time = 0
 
+                if step_button.collidepoint(event.pos):
+                    paused = True
+
+                    if len(undos) > 0:
+                        print(undos)
+                        board.place(undos.pop())
+
                 if undo_button.collidepoint(event.pos):
+                    undos.append(board.last_action)
                     board.undo()
+
                     print("undo")
+
                     pygame.display.flip()
                 if human_turn:
                     x, y = pygame.mouse.get_pos()
