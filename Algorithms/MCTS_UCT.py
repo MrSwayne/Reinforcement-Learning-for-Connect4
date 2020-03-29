@@ -2,9 +2,8 @@ from Algorithms.MCTS import *
 
 class MCTS_UCT(MCTS):
 
-    def __init__(self,memory = None,  duration=None, depth=None, n=2000, e=1.414, g=0.9, l=1, debug=False):
-        super().__init__(memory, duration, depth, n, e, g, l, debug)
-
+    def __init__(self,memory = None,  duration=None, depth=None, n=2000, e=1.414, g=0.9, l=1, a=0.005, debug=False):
+        super().__init__(memory, duration, depth, n, e, g, l, a, debug)
         self.MAX_REWARD = 1
         self.MIN_REWARD = -1
 
@@ -58,7 +57,7 @@ class MCTS_UCT(MCTS):
             if cvc == 0:
                 score = float('inf')
             else:
-                score = (cs / cvc) + 2 * (self.e * math.sqrt(2 * math.log(pvc) / cvc))
+                score = (cs / cvc) +  (self.e * math.sqrt(2 * math.log(pvc) / cvc))
 
             if score > max_score:
                 best_children = []

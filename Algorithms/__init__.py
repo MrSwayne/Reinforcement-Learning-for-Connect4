@@ -14,17 +14,17 @@ def create_algorithm(args):
     logger.info("Creating " + algorithm)
     if algorithm.upper() == "UCT":
      return MCTS_UCT(n=args.getint("n"), g=args.getfloat("discount_factor"),
-                                        e=args.getfloat("exploration"), memory = args.get("memory", ""))
+                                        e=args.getfloat("exploration"), a = args.getfloat("learning_rate"),memory = args.get("memory", ""))
     elif algorithm.upper() == "TDUCT":
         return MCTS_TDUCT(n=args.getint("n"), g=args.getfloat("discount_factor"),
-                                           e=args.getfloat("exploration"), memory= args.get("memory", ""))
+                                           e=args.getfloat("exploration"), a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
 
     elif algorithm.upper() == "TDUCT2":
         return MCTS_TDUCT2(n=args.getint("n"), g=args.getfloat("discount_factor"),
-                                           e=args.getfloat("exploration"), memory= args.get("memory", ""))
+                                           e=args.getfloat("exploration"),a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
     elif algorithm.upper() == "TDUCT3":
         return MCTS_TDUCT3(n=args.getint("n"), g=args.getfloat("discount_factor"),
-                                           e=args.getfloat("exploration"), memory= args.get("memory", ""))
+                                           e=args.getfloat("exploration"),a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
     elif algorithm.upper() == "MINIMAX":
         return Minimax(use_heuristic= args.getboolean("heuristic",False),max_depth= args.getint("depth"))
     elif algorithm.upper() == "ALPHABETA":

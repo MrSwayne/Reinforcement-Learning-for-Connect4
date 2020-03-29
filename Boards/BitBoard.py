@@ -36,7 +36,10 @@ class BitBoard():
 
     def undo(self):
         self.moves.pop()
-        self.last_action = self.moves[len(self.moves) - 1]
+        if len(self.moves) == 0:
+            self.last_action = None
+        else:
+            self.last_action = self.moves[len(self.moves) - 1]
         self.turn -= 1
 
         if self.game_over:
@@ -53,20 +56,11 @@ class BitBoard():
 
     def get_state(self, player=None):
 
-        if player is not None:
-            states = [self.boards[player]]
-            for p in self.players:
-                if p == player:
-                    continue
-                states.append(self.boards[p])
-
-            states.append(self.turn % len(self.players))
-            return tuple(states)
-
         states = []
         for player, player_board in self.boards.items():
             states.append(player_board)
-        states.append(int(self.get_player_turn()) % len(self.players))
+
+        states.append(int(self.turn) % len(self.players))
         return tuple(states)
 
     def reset(self):

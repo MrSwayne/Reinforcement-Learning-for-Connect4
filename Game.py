@@ -1,3 +1,4 @@
+import Algorithms
 from Boards.BitBoard import *
 from Algorithms.MCTS import *
 import time
@@ -23,6 +24,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
     while i < episodes:
         #Train
         if i != 0:
+
             for p in players:
                 p.set_learning(True)
 
@@ -32,7 +34,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
 
             print(players)
             logger.info("Training: " + str(players))
-            completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False)
+            completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False, training=True)
             t1 = time.clock()
             print("Training ", batch, " games = ", t1-t0, " seconds")
             logger.info("Training " + str(batch) + " games = " + str(t1-t0) + " seconds")
@@ -64,7 +66,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
 
     return training_results, tournament_results
 
-def simulation(board, players, num_episodes=10, table = {}, debug=False):
+def simulation(board, players, num_episodes=10, table = {}, debug=False, training=False):
     completed_games = []
 
     state = board(players)
@@ -80,6 +82,15 @@ def simulation(board, players, num_episodes=10, table = {}, debug=False):
 
         while not state.game_over:
 
+            if len(state.moves) <= 1 and training == True:
+                max_explore = True
+            else:
+                max_explore = False
+
+            for p in players:
+                if isinstance(p.algorithm, Algorithms.MCTS):
+                    p.algorithm.max_exploration(max_explore)
+
             if state.get_state() not in table:
                 table[state.get_state()] = 1
             else:
@@ -93,7 +104,10 @@ def simulation(board, players, num_episodes=10, table = {}, debug=False):
 
             action = player.get_choice(state)
 
+
+
             state.place(action)
+
             winner = state.winner
 
         avg += len(state.moves)
@@ -111,9 +125,12 @@ def simulation(board, players, num_episodes=10, table = {}, debug=False):
         avg /= num_episodes
     print()
 
-    logger.debug("Completed Simulation of " + str(num_episodes))
+    logger.info("Completed Simulation of " + str(num_episodes))
+
+    j = 0
     for game in completed_games:
-        logger.debug(str(game.get_state()) + " : " + str(game.winner) + " : " +  str(game.moves) )
+        logger.info(str(j+1) + ". " + str(game.get_state()) + " : " + str(game.winner) + " : " +  str(game.moves) )
+        j += 1
     return completed_games, winners, avg
 
 def manual(board, players, sequence):

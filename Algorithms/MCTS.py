@@ -16,10 +16,20 @@ class MCTS(Algorithm):
     def get_name(self):
         return "MCTS"
 
-    def __init__(self, memory = None, duration=None, depth=None, n=1000, e=0.15, g=0.9, l=1, debug=False):
+    def max_exploration(self, booli):
+        logger.info("Setting max exploration to : " + str(booli))
+        if booli:
+            self.e = 5
+        else:
+            self.e = self._e
+
+
+    def __init__(self, memory = None, duration=None, depth=None, n=100, e=0.5, g=0.9, l=1, a = 0.005, debug=False):
         super().__init__()
 
+        self.a = a
         self.e = e
+        self._e = e
         self.duration = duration
         self.depth = depth
         self.n = n
@@ -47,6 +57,8 @@ class MCTS(Algorithm):
         self.data = {}
 
     def set_memory(self, data):
+        print("Overwriting : " + str(len(self.data)) + " with " + str(len(data)))
+        logger.info("Overwriting : " + str(len(self.data)) + " with " + str(len(data)))
         self.data = data
         self.root = None
 
@@ -92,11 +104,9 @@ class MCTS(Algorithm):
             children = self.root.children
 
             self.root = None
-          #  logger.info("Checking..")
             # Select child to be the opponent's move, as opposed to discarding the whole search tree
             for child in children:
                 if child.get_state() == state.get_state():
-           #         logger.info("FOUND!")
                     self.root = child
                     break
 
@@ -104,6 +114,7 @@ class MCTS(Algorithm):
 
         # If tree has not been initialised previously, or it couldn't find the opponent's move, the tree is discarded
         if self.root is None:
+            logger.error("Creating new tree: "+ str(len(self.data)) +  ": " + str(self.learning))
             self.root = Tree.create_tree(state, self.data, self.learning)
 
         # Based on initial conditions like time per turn, or X amount of simulations etc.

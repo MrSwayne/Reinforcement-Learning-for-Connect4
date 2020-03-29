@@ -54,7 +54,15 @@ def draw(*states, width=1280, height=720):
 
     player_colour_map = {0: (255, 255, 255)}
 
-    players = states[0].get_players()
+    players = []
+
+
+    states = states[0]
+    for state in states:
+        players = state.get_players()
+        break
+
+
     for player in players:
         player_colour_map[player] = player.get_rgb()
 

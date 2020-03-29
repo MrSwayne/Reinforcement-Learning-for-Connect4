@@ -10,7 +10,6 @@ class Algorithm():
 
     def __init__(self):
         self.learning = True
-        pass
 
     @abstractmethod
     def get_move(self, state):
@@ -49,7 +48,16 @@ class Tree:
     def create_tree(state, data, learn):
 
         root = Node(parent=None, state=state, player=state.get_player_turn(), prev_action=-1, depth=0, data=data, learn=learn)
-        logger.info(str(root.player) + " : Creating new tree, learning is " + str(learn))
+        logger.info(str(root.player) + " : Creating new tree, learning is " + str(learn) + " (" + str(type(learn)) + ")")
+
+        if len(state.moves) == 1:
+            _state = deepcopy(state)
+            _state.undo()
+            root.parent = Node(parent=None, state=_state, player=_state.get_player_turn(), prev_action= -1, depth = 0, data=data, learn=learn)
+            root.prev_action = _state.last_action
+            root.depth += 1
+
+
         return root
 class Node:
 
@@ -90,9 +98,9 @@ class Node:
 
 
         if self.parent is not None:
-            if self._V > self.parent.best_child.V:
+            if self.parent.best_child is None or self._V > self.parent.best_child.V:
                 self.parent.best_child = self
-            if self._V < self.parent.best_child.V:
+            if self.parent.best_child is None or self._V < self.parent.best_child.V:
                 self.parent.worst_child = self
 
     @visit_count.setter
@@ -130,8 +138,13 @@ class Node:
                 self._V = 1
             self.total_actions = state.get_actions()
 
+
         if self.get_state() in self.data:
             (self._score, self._V, self._visits) = self.data[self.get_state()]
+
+        if self.parent is not None and self.parent.get_state() == (0,0,1):
+            logger.info(str(self.get_state()) + "_" + str(prev_action) + "_" +"   " + str((self.score, self.V, self.visit_count)) + " : " + str(self.parent.get_state()))
+            logger.info(str(int(self.state.get_player_turn())) + "-" + str(int(self.parent.state.get_player_turn())))
 
     def get_state(self):
         if self.state is None:
