@@ -73,6 +73,8 @@ class MCTS_UCT(MCTS):
 
             if reward >= 1:
                 node.score += 1
+            elif reward == 0:
+                node.score += 0.5
             reward *= -1
 
             node.visit_count += 1
