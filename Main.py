@@ -26,7 +26,9 @@ random.seed(SEED)
 logger.info("SEED: " + str(SEED))
 mode = cfg["GENERAL"]["MODE"].upper()
 
+max_explore = cfg["GENERAL"].getboolean("max_explore", False)
 logger.info("MODE: " + mode)
+logger.info("Max Explore: " + str(max_explore))
 
 board = get_board(cfg["GENERAL"].get("board", ConnectBoard))
 if mode == "TRAIN":
@@ -39,24 +41,30 @@ if mode == "TRAIN":
         players.append(player)
 
     enemy = Player.create_player(cfg[cfg["TRAIN"]["enemy"]])
-    training_res, tournament_res = Game.experiment(board, players, enemy, episodes, batch, tournament_games)
+    training_res, tournament_res = Game.experiment(board, players, enemy, episodes, batch, tournament_games, max_explore)
 
     print("--\nTraining--\n")
     logger.info("-------Training results--------")
+
+    num = 0
     for completed_games, winners, avg_moves in training_res:
 
         print(winners, "\t", avg_moves)
-        logger.info(str(winners) + " " + str(avg_moves))
+        logger.info(str(num +1) + str(winners) + " " + str(avg_moves))
         print()
+        num += 1
+
 
     print("--\nTournament--\n")
     logger.info("-------Tournament results--------")
+
+    num = 0
     for completed_games, winners, avg_moves in tournament_res:
         avg = 0
 
         print(winners, "\t", avg_moves)
-        logger.info(str(winners) + " " + str(avg_moves))
-        print()
+        logger.info(str(num + 1) + " " + str(winners) + " " + str(avg_moves))
+        num += 1
 
 elif mode == "SIMULATION":
     players = []

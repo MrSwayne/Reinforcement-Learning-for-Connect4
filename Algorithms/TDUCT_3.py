@@ -17,7 +17,7 @@ class MCTS_TDUCT3(MCTS):
         if int(check_win) == int(node.player):
             return self.MIN_REWARD
         elif int(check_win) == 0:
-            return (self.MAX_REWARD + self.MIN_REWARD) / 2
+            return 0
         else:
             return self.MAX_REWARD
 
@@ -31,15 +31,20 @@ class MCTS_TDUCT3(MCTS):
             cvc = child.visit_count
             cs = child.score
 
-            if cvc == 0:
-                score = float('inf')
+            if self.max_explore:
+                score = -cvc
 
+             #   logger.debug("Max exploration set. " + str(child.prev_action) + " " + str(score))
+            elif cvc == 0:
+                score = float('inf')
             else:
                 #normalised_score = (child.V - node.best_child.V) / ((node.best_child.V - node.worst_child.V) + 1)
                # print(normalised_score)
               #  score = normalised_score + self.e * math.sqrt(math.log(pvc) / cvc)
 
                 score = child.V + (self.e * math.sqrt( math.log(pvc) / (cvc + 1)))
+
+
             if score > max_score:
                 best_children = []
                 max_score = score
@@ -56,24 +61,35 @@ class MCTS_TDUCT3(MCTS):
         highest_val = float("-inf")
 
         best_children = []
-        for child in node.children:
 
-            if child.state.game_over:
-                return child
+        if self.max_explore:
+            min_visits = float("inf")
 
-            if child.V > highest_val:
-                best_children = []
-                highest_val = child.V
-            if child.V >= highest_val:
-                best_children.append(child)
+            for child in node.children:
+                if child.visit_count < min_visits:
+                    min_visits = child.visit_count
+                    best_children = []
+                if child.visit_count <= min_visits:
+                    best_children.append(child)
+        else:
+            for child in node.children:
+                if child.V > highest_val:
+                    best_children = []
+                    highest_val = child.V
+                if child.V >= highest_val:
+                    best_children.append(child)
         return random.choice(best_children)
 
     def backpropagate(self, node, reward, num_steps):
 
         reward *= (self.gamma ** (num_steps))
 
+
         alpha = max(1 / (node.visit_count + 1), self.a)
         node.V = node.V + alpha * (reward - node.V)
+
+        temp = None
+
 
         while node is not None:
 
@@ -82,9 +98,9 @@ class MCTS_TDUCT3(MCTS):
             reward *= -1
             node.visit_count += 1
 
+
             if node.parent is not None:
                 target = -(self.reward(node.parent, node.parent.state) + self.gamma * node.V)
-
                 alpha = max(1 / (node.parent.visit_count), self.a)
                 node.parent.V = node.parent.V + alpha * (target - node.parent.V)
             node = node.parent

@@ -17,20 +17,19 @@ class MCTS(Algorithm):
         return "MCTS"
 
     def max_exploration(self, booli):
-        logger.info("Setting max exploration to : " + str(booli))
-        if booli:
-            self.e = 5
-        else:
-            self.e = self._e
 
+        if booli is not self.max_explore:
+            logger.debug("Setting max exploration to : " + str(booli))
+
+        self.max_explore = booli
 
     def __init__(self, memory = None, duration=None, depth=None, n=100, e=0.5, g=0.9, l=1, a = 0.005, debug=False):
         super().__init__()
 
         self.a = a
         self.e = e
-        self._e = e
         self.duration = duration
+        self.max_explore = False
         self.depth = depth
         self.n = n
         self.end = None
@@ -44,7 +43,7 @@ class MCTS(Algorithm):
         self.data = {}
 
 
-        logger.info("n: " + str(self.n) + " g: " + str(self.gamma) + " e: " + str(self.e) + " mem: " + str(self.memory))
+        logger.info("n: " + str(self.n) + " g: " + str(self.gamma) + " e: " + str(self.e) + " a: " + str(self.a) + " mem: " + str(self.memory))
         if memory is not None or memory is not "":
             self.load_memory()
 
@@ -53,6 +52,7 @@ class MCTS(Algorithm):
 
     def clear_memory(self):
         print("Clearing ", len(self.data))
+        logger.warning("Clearing memory! " + str(len(self.data)))
         self.root = None
         self.data = {}
 

@@ -7,18 +7,24 @@ from Core import LOGGER
 
 
 logger = LOGGER.attach(__name__)
-def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_games = 100):
+def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_games = 100, max_explore=False):
 
     tournament_number = 1
     training_results = []
     tournament_results = []
     i = 0
     _p = None
+
+
+
+    print(players)
+
     for p in players:
         if _p is None:
             _p = p
         else:
-            if isinstance(type(_p.algorithm), type(p.algorithm)):
+            if(type(p.algorithm) == type(p.algorithm)):
+                logger.info("Setting : " + str(p) + " to the memory of : " + str(_p))
                 p.algorithm.set_memory(_p.algorithm.get_memory())
 
     while i < episodes:
@@ -34,7 +40,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
 
             print(players)
             logger.info("Training: " + str(players))
-            completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False, training=True)
+            completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False, max_explore=max_explore)
             t1 = time.clock()
             print("Training ", batch, " games = ", t1-t0, " seconds")
             logger.info("Training " + str(batch) + " games = " + str(t1-t0) + " seconds")
@@ -66,7 +72,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
 
     return training_results, tournament_results
 
-def simulation(board, players, num_episodes=10, table = {}, debug=False, training=False):
+def simulation(board, players, num_episodes=10, table = {}, debug=False, max_explore=False):
     completed_games = []
 
     state = board(players)
@@ -82,14 +88,16 @@ def simulation(board, players, num_episodes=10, table = {}, debug=False, trainin
 
         while not state.game_over:
 
-            if len(state.moves) <= 1 and training == True:
-                max_explore = True
-            else:
-                max_explore = False
+            if max_explore:
+                if len(state.moves) <= 1:
+                    explore = True
+                else:
+                    explore = False
+                    max_explore = False
 
-            for p in players:
-                if isinstance(p.algorithm, Algorithms.MCTS):
-                    p.algorithm.max_exploration(max_explore)
+                for p in players:
+                    if isinstance(p.algorithm, Algorithms.MCTS):
+                        p.algorithm.max_exploration(explore)
 
             if state.get_state() not in table:
                 table[state.get_state()] = 1

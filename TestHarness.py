@@ -3,7 +3,7 @@ from Player import *
 from Algorithms import *
 from Boards import *
 
-players = [Bot("BLUE", algorithm=MCTS_TDUCT3(n=100, e=1, memory="TTT_Training\max_explore_first_move\\1_4900")),Bot("RED", algorithm=MCTS_TDUCT3(n=100, e=1.616, memory="TTT_Training\max_explore_first_move\\1_4900"))]
+players = [Bot("BLUE", algorithm=MCTS_UCT(n=1000, e=0.5, memory="")),Bot("RED", algorithm=MCTS_TDUCT3(n=1000, e=0.5, memory=""))]
 def get_states(data, moves):
     states = {}
     boards = []
@@ -21,10 +21,7 @@ def get_states(data, moves):
 
 import Game
 
-#ame.simulation(TicBoard, players, 10)
-board = TicBoard(players)
-print(players[0].get_choice(board))
-print(players[0].algorithm.root.parent.dump())
 
-completed_games, winners, avg_moves = Game.simulation(TicBoard, players, 50)
-#GUI.draw(completed_games)
+#ame.simulation(TicBoard, players, 10)
+board = ConnectBoard(players)
+GUI.play(board)

@@ -54,11 +54,13 @@ class Tree:
             _state = deepcopy(state)
             _state.undo()
             root.parent = Node(parent=None, state=_state, player=_state.get_player_turn(), prev_action= -1, depth = 0, data=data, learn=learn)
-            root.prev_action = _state.last_action
+            root.prev_action = state.last_action
             root.depth += 1
-
-
+            root.parent.children.append(root)
+            if root.parent.visit_count == 0:
+                root.parent.visit_count = 1
         return root
+
 class Node:
 
     def create_children(self):
@@ -138,13 +140,8 @@ class Node:
                 self._V = 1
             self.total_actions = state.get_actions()
 
-
         if self.get_state() in self.data:
             (self._score, self._V, self._visits) = self.data[self.get_state()]
-
-        if self.parent is not None and self.parent.get_state() == (0,0,1):
-            logger.info(str(self.get_state()) + "_" + str(prev_action) + "_" +"   " + str((self.score, self.V, self.visit_count)) + " : " + str(self.parent.get_state()))
-            logger.info(str(int(self.state.get_player_turn())) + "-" + str(int(self.parent.state.get_player_turn())))
 
     def get_state(self):
         if self.state is None:

@@ -157,6 +157,7 @@ class AlphaBeta_V2(Algorithm):
         self.max_depth = max_depth
         self.scores = {}
         self.use_heuristic = True
+        logger.debug("Depth: " + str(self.max_depth))
 
     def get_move(self, state):
         self.max = state.get_player_turn()

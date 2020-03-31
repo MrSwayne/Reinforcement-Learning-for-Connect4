@@ -53,6 +53,10 @@ class ConnectBoard(BitBoard):
 
     def place(self, action):
         if not self.game_over:
+
+            if type(action) == tuple:
+                action = action[1]
+
             if self.high[action] > 0:
                 row = self.high[action] - 1
                 bit = self.get_index(row=row, col=action)
