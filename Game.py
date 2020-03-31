@@ -36,12 +36,12 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
 
             print("Training ", i, "-", i + batch - 1)
             logger.info("Training " + str(i) + "-" + str(i + batch - 1))
-            t0 = time.clock()
+            t0 = time.process_time()
 
             print(players)
             logger.info("Training: " + str(players))
             completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False, max_explore=max_explore)
-            t1 = time.clock()
+            t1 = time.process_time()
             print("Training ", batch, " games = ", t1-t0, " seconds")
             logger.info("Training " + str(batch) + " games = " + str(t1-t0) + " seconds")
             logger.info(str(winners) + " " + str(avg_moves))
@@ -55,14 +55,14 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
         #Tournament
         print("Tournament ", tournament_number, "\t", tournament_players)
 
-        t0 = time.clock()
+        t0 = time.process_time()
         for p in tournament_players:
             p.set_learning(False)
 
         logger.info("Tournament: " + str(players))
         completed_games, winners, avg_moves = simulation(board, tournament_players, tournament_games)
 
-        t1 = time.clock()
+        t1 = time.process_time()
         print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
         logger.info("Tournament " + str(tournament_games) + " games = " + str(t1 - t0) + " seconds")
         print(winners, " ", avg_moves)
