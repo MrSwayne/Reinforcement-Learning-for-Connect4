@@ -164,7 +164,6 @@ class Node:
             string += str(child.prev_action) +"_"+ str((child.score, round(child.V, 4), child.visit_count)) + " "
         return string
 
-
 class Random(Algorithm):
 
     def __init__(self):
