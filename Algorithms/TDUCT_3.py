@@ -17,7 +17,7 @@ class MCTS_TDUCT3(MCTS):
         if int(check_win) == int(node.player):
             return self.MIN_REWARD
         elif int(check_win) == 0:
-            return 0
+            return self.MAX_REWARD / 2
         else:
             return self.MAX_REWARD
 

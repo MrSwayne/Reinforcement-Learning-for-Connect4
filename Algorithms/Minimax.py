@@ -44,7 +44,7 @@ class AlphaBeta_V2(Algorithm):
         if c >= 0 and c < board.cols and r >= 0 and r < board.rows:
             cell = board.get(r, c)
 
-            if cell is not 0:
+            if cell != 0:
 
                 list = []
                 for col in range(c - 1, c - win_span, -1):
@@ -127,7 +127,7 @@ class AlphaBeta_V2(Algorithm):
         for r in range(state.rows):
             for c in range(state.cols):
                 cell = state.get(r, c)
-                if cell is not 0:
+                if cell != 0:
 
                     neighbours = self.get_neighbours(state, r, c, win_span)
 
@@ -156,7 +156,7 @@ class AlphaBeta_V2(Algorithm):
         self.min = None
         self.max_depth = max_depth
         self.scores = {}
-        self.use_heuristic = True
+        self.use_heuristic = use_heuristic
         logger.debug("Depth: " + str(self.max_depth))
 
     def get_move(self, state):
@@ -168,21 +168,21 @@ class AlphaBeta_V2(Algorithm):
         for action in state.get_actions():
             _state = deepcopy(state)
             _state.place(action)
-
-            score = self.alphabeta(_state, self.max_depth, float("-inf"), float("inf"), False)
+            score = 0
+            score += self.alphabeta(_state, self.max_depth, float("-inf"), float("inf"), False)
             self.scores[action] = score
             if score > best_score:
                 best_children = []
                 best_score = score
             if score >= best_score:
                 best_children.append(action)
-        logger.debug(str(state.get_player_turn()) + " " + str(self.scores))
+        logger.debug(str(state.get_player_turn()) + ": " + str(self.scores))
         return random.choice(best_children)
 
     def alphabeta(self, state, depth, alpha, beta, max_layer):
         if depth == 1:
             if self.use_heuristic is True:
-                return self.heuristic(state, state.get_player_turn(), state.win_span)
+                return -self.heuristic(state, state.get_player_turn(), state.win_span)
             else:
                 return 0
         if state.game_over:

@@ -144,7 +144,7 @@ def play(board, simulation=False, W = 1280, H=720):
 
     board_map = {}
     undos = []
-    t0 = time.clock()
+    t0 = time.process_time()
     paused_time = 0
     while not done:
         screen.fill((0,0,0))
@@ -309,7 +309,7 @@ def play(board, simulation=False, W = 1280, H=720):
                 if reset_button.collidepoint(event.pos):
                     board.reset()
                     undos.clear()
-                    t0 = time.clock()
+                    t0 = time.process_time()
 
                     print("-----------------------------------------------------")
 
@@ -318,7 +318,7 @@ def play(board, simulation=False, W = 1280, H=720):
 
                     if paused:
                         play_text = "Play"
-                        paused_time = time.clock()
+                        paused_time = time.process_time()
                     else:
                         play_text = "Pause"
                         t0 += paused_time

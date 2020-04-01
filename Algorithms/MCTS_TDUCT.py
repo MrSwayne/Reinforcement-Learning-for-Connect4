@@ -80,5 +80,5 @@ class MCTS_TDUCT(MCTS):
             node.visit_count += 1
             alpha = max(1 / (1 + node.visit_count), 0.005)
             node.V = node.V + alpha * target - node.V
-
+            target *= -1
             node = node.parent
