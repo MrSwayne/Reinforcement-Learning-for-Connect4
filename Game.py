@@ -26,49 +26,73 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
             if(type(p.algorithm) == type(p.algorithm)):
                 logger.info("Setting : " + str(p) + " to the memory of : " + str(_p))
                 p.algorithm.set_memory(_p.algorithm.get_memory())
+    try:
+        while i < episodes:
+            #Train
+            if i != 0:
 
-    while i < episodes:
-        #Train
-        if i != 0:
+                for p in players:
+                    p.set_learning(True)
 
-            for p in players:
-                p.set_learning(True)
+                print("Training ", i, "-", i + batch - 1)
+                logger.info("Training " + str(i) + "-" + str(i + batch - 1))
+                t0 = time.process_time()
 
-            print("Training ", i, "-", i + batch - 1)
-            logger.info("Training " + str(i) + "-" + str(i + batch - 1))
+                print(players)
+                logger.info("Training: " + str(players))
+                completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False, max_explore=max_explore)
+                t1 = time.process_time()
+                print("Training ", batch, " games = ", t1-t0, " seconds")
+                logger.info("Training " + str(batch) + " games = " + str(t1-t0) + " seconds")
+                logger.info(str(winners) + " " + str(avg_moves))
+                training_results.append((completed_games, winners, avg_moves))
+                i += batch
+                players[0].save("_" + str(i - 1))
+            else:
+                i += 1
+
+            tournament_players = [players[0], enemy]
+            #Tournament
+            print("Tournament ", tournament_number, "\t", tournament_players)
+
             t0 = time.process_time()
+            for p in tournament_players:
+                p.set_learning(False)
 
-            print(players)
-            logger.info("Training: " + str(players))
-            completed_games, winners, avg_moves = simulation(board, players, num_episodes=batch, debug=False, max_explore=max_explore)
+            logger.info("Tournament: " + str(players))
+            completed_games, winners, avg_moves = simulation(board, tournament_players, tournament_games)
+
             t1 = time.process_time()
-            print("Training ", batch, " games = ", t1-t0, " seconds")
-            logger.info("Training " + str(batch) + " games = " + str(t1-t0) + " seconds")
-            logger.info(str(winners) + " " + str(avg_moves))
-            training_results.append((completed_games, winners, avg_moves))
-            i += batch
-            players[0].save("_" + str(i - 1))
-        else:
-            i += 1
+            print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
+            logger.info("Tournament " + str(tournament_games) + " games = " + str(t1 - t0) + " seconds")
+            print(winners, " ", avg_moves)
+            logger.info(winners)
+            tournament_number += 1
+            tournament_results.append((completed_games, winners, avg_moves))
+    except Exception as e :
+        print(e)
+        logger.error(e)
+    finally:
+        print("--\nTraining--\n")
+        logger.info("-------Training results--------")
 
-        tournament_players = [players[0], enemy]
-        #Tournament
-        print("Tournament ", tournament_number, "\t", tournament_players)
+        num = 0
+        for completed_games, winners, avg_moves in training_results:
+            print(winners, "\t", avg_moves)
+            logger.info(str(num + 1) + str(winners) + " " + str(avg_moves))
+            print()
+            num += 1
 
-        t0 = time.process_time()
-        for p in tournament_players:
-            p.set_learning(False)
+        print("--\nTournament--\n")
+        logger.info("-------Tournament results--------")
 
-        logger.info("Tournament: " + str(players))
-        completed_games, winners, avg_moves = simulation(board, tournament_players, tournament_games)
+        num = 0
+        for completed_games, winners, avg_moves in tournament_results:
+            avg = 0
 
-        t1 = time.process_time()
-        print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
-        logger.info("Tournament " + str(tournament_games) + " games = " + str(t1 - t0) + " seconds")
-        print(winners, " ", avg_moves)
-        logger.info(winners)
-        tournament_number += 1
-        tournament_results.append((completed_games, winners, avg_moves))
+            print(winners, "\t", avg_moves)
+            logger.info(str(num + 1) + " " + str(winners) + " " + str(avg_moves))
+            num += 1
 
     return training_results, tournament_results
 
@@ -93,7 +117,6 @@ def simulation(board, players, num_episodes=10, table = {}, debug=False, max_exp
                     explore = True
                 else:
                     explore = False
-                    max_explore = False
 
                 for p in players:
                     if isinstance(p.algorithm, Algorithms.MCTS):
