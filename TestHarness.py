@@ -3,7 +3,7 @@ from Player import *
 from Algorithms import *
 from Boards import *
 
-players = [Human("BLUE"),Bot("RED", algorithm=AlphaBeta_V2(True, 6))]
+players = [Bot("BLUE", algorithm=MCTS_TDUCT3(n=1000,e = 0.5)),Bot("RED", algorithm=MCTS_TDUCT3(n=1000,e = 0.5))]
 def get_states(data, moves):
     states = {}
     boards = []
@@ -23,6 +23,6 @@ import Game
 
 
 #ame.simulation(TicBoard, players, 10)
-board = TicBoard(players)
+board = ConnectBoard(players)
 
 GUI.play(board)

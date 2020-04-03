@@ -2,7 +2,7 @@ import csv
 import configparser
 import os
 from Core.Logger import LOGGER
-
+from Core.Conf import cfg
 logger = LOGGER.attach(__name__)
 
 class IO:
@@ -11,8 +11,6 @@ class IO:
     map = {}
 
     def dump(self, data, path):
-        cfg = configparser.ConfigParser()
-        cfg.read("config.ini")
         if IO.verify(path):
             with open(path, "w+", newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
@@ -23,8 +21,6 @@ class IO:
     def write(path, table):
         if path == "" or path is None:
             return
-        cfg = configparser.ConfigParser()
-        cfg.read("config.ini")
         path = cfg["IO"]["data_path"] + path + ".csv"
         print("Attempting to write to ", path, end="\r")
         logger.info("Attempting to write to " + str(path))
@@ -45,8 +41,6 @@ class IO:
 
     @staticmethod
     def list(path):
-        cfg = configparser.ConfigParser()
-        cfg.read("config.ini")
         path = cfg["IO"]["data_path"] + path
         return os.listdir(path)
 
@@ -56,10 +50,6 @@ class IO:
         if path == "" or path is None:
             return {}
 
-
-
-        cfg = configparser.ConfigParser()
-        cfg.read("config.ini")
         path = cfg["IO"]["data_path"] + path + ".csv"
         data = {}
 

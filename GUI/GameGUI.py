@@ -132,7 +132,10 @@ def play(board, simulation=False, W = 1280, H=720):
     block_size = 50
     pygame.init()
 
-    pygame.display.set_caption("Connect4")
+    if isinstance(board, TicBoard):
+        pygame.display.set_caption("Tic-Tac-Toe")
+    else:
+        pygame.display.set_caption("Connect4")
     font = pygame.font.SysFont("microsoftsansserif",20)
     clock = pygame.time.Clock()
 
@@ -174,7 +177,7 @@ def play(board, simulation=False, W = 1280, H=720):
                     w = (x_offset + block_size * board.rows + 70, W - 100)
                     h = 10
                     depth = 4
-                    drawGraph(screen=screen, font=graph_font, node=p.algorithm.root, width=w, height=h)
+                   # drawGraph(screen=screen, font=graph_font, node=p.algorithm.root, width=w, height=h)
 
                #     if p.algorithm.root.parent is not None:
                 #        drawGraph(screen=screen, font=graph_font, node=p.algorithm.root.parent, width=w,

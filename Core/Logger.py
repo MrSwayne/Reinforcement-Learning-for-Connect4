@@ -1,10 +1,21 @@
 import logging
+from Core.Conf import *
 
 class Logger:
 
     def __init__(self, filename):
-        self.filename = filename
+        print("Logging to: ", filename)
+        self._filename = filename
         self.loggers = {}
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @filename.setter
+    def filename(self, f):
+        print("Logging to: ", f)
+        self._filename = f
 
     def attach(self, name, filename = None):
         print("Attaching Logger: " + str(name))
@@ -23,4 +34,6 @@ class Logger:
         self.loggers[name] = logger
         return logger
 
-LOGGER = Logger("out")
+#IO.verify(cfg["IO"]["log_path"])
+log_path = cfg["IO"]["log_path"] + cfg["LOGGING"].get("file_name", "log.out")
+LOGGER = Logger(log_path)

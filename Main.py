@@ -1,16 +1,13 @@
+from Core.Conf import cfg
 from Core.Logger import LOGGER
 import configparser
 
-cfg = configparser.ConfigParser()
-cfg.read("config.ini")
 
-log_path = cfg["IO"]["log_path"] + cfg["LOGGING"].get("file_name", "log.out")
-LOGGER.filename = log_path
+
+
 logger = LOGGER.attach(__name__)
 
 from Core.IO import IO
-IO.verify(cfg["IO"]["log_path"])
-print("Logging to: ", log_path)
 
 #logger.info({section: dict(cfg[section]) for section in cfg.sections()})
 from Player import *
@@ -31,6 +28,7 @@ logger.info("MODE: " + mode)
 logger.info("Max Explore: " + str(max_explore))
 
 board = get_board(cfg["GENERAL"].get("board", ConnectBoard))
+logger.info("Creating: " + str(board))
 if mode == "TRAIN":
     episodes = cfg["TRAIN"].getint("episodes")
     batch = cfg["TRAIN"].getint("batch")
@@ -88,4 +86,4 @@ elif mode == "PLAY":
     players = []
     for p in cfg["PLAY"]["players"].split(","):
         players.append(Player.create_player(cfg[p]))
-    GUI.play(BitBoard(players))
+    GUI.play(board(players))

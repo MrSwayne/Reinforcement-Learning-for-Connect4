@@ -5,7 +5,10 @@ class TicBoard(BitBoard):
         self.num_bandits = len(self.get_actions())
 
     def undo(self):
-        action = self.moves[len(self.moves) - 1]
+        if len(self.moves[len(self.moves) - 1]) == 0:
+            action = None
+        else:
+            action = self.moves[len(self.moves) - 1]
         last_row = action[0]
         last_col = action[1]
 

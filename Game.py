@@ -15,10 +15,6 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
     i = 0
     _p = None
 
-
-
-    print(players)
-
     for p in players:
         if _p is None:
             _p = p
@@ -63,10 +59,14 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
             completed_games, winners, avg_moves = simulation(board, tournament_players, tournament_games)
 
             t1 = time.process_time()
+
+            print()
             print("Tournament ", tournament_games, " games = ", t1 - t0, " seconds")
             logger.info("Tournament " + str(tournament_games) + " games = " + str(t1 - t0) + " seconds")
             print(winners, " ", avg_moves)
             logger.info(winners)
+
+            print()
             tournament_number += 1
             tournament_results.append((completed_games, winners, avg_moves))
     except Exception as e :
