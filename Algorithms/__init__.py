@@ -21,6 +21,11 @@ def create_algorithm(args):
     elif algorithm.upper() == "TDMCTS":
         return MCTS_TDUCT3(n=args.getint("n"), g=args.getfloat("discount_factor"),
                                            e=args.getfloat("exploration"),a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
+
+    elif algorithm.upper() == "test":
+        return MCTS_TDUCT3(n=args.getint("n"), g=args.getfloat("discount_factor"),
+                                           e=args.getfloat("exploration"),a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
+
     elif algorithm.upper() == "MINIMAX":
         return Minimax(use_heuristic= args.getboolean("heuristic",False),max_depth= args.getint("depth"))
     elif algorithm.upper() == "ALPHABETA":
