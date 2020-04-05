@@ -89,9 +89,6 @@ class MCTS_TDUCT3(MCTS):
         alpha = max(1 / (node.visit_count + 1), self.a)
         node.V = node.V + alpha * (reward - node.V)
 
-        temp = None
-
-
         while node is not None:
 
             if reward > 0:

@@ -1,9 +1,8 @@
 from Algorithms.Algorithm import *
 from Algorithms.MCTS import *
 from Algorithms.MCTS_UCT import *
-from Algorithms.MCTS_TDUCT import *
-from Algorithms.TDUCT_2 import *
-from Algorithms.TDUCT_3 import *
+from Algorithms.TDUCT import *
+from Algorithms.TDMCTS import *
 from Algorithms.Minimax import *
 from Core import LOGGER
 
@@ -19,10 +18,7 @@ def create_algorithm(args):
         return MCTS_TDUCT(n=args.getint("n"), g=args.getfloat("discount_factor"),
                                            e=args.getfloat("exploration"), a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
 
-    elif algorithm.upper() == "TDUCT2":
-        return MCTS_TDUCT2(n=args.getint("n"), g=args.getfloat("discount_factor"),
-                                           e=args.getfloat("exploration"),a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
-    elif algorithm.upper() == "TDUCT3":
+    elif algorithm.upper() == "TDMCTS":
         return MCTS_TDUCT3(n=args.getint("n"), g=args.getfloat("discount_factor"),
                                            e=args.getfloat("exploration"),a = args.getfloat("learning_rate"), memory= args.get("memory", ""))
     elif algorithm.upper() == "MINIMAX":

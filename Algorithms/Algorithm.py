@@ -135,14 +135,8 @@ class Node:
         self.best_child = None
         self.worst_child = None
         self._V = 0.5
-        if state is not None:
-            if state.game_over:
-                if state.winner == 0:
-                    self._V = 0
-                else:
-                    self._V = 1
 
-            self.total_actions = state.get_actions()
+        self.total_actions = state.get_actions()
 
         if self.get_state() in self.data:
             (self._score, self._V, self._visits) = self.data[self.get_state()]

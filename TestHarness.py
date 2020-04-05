@@ -3,7 +3,7 @@ from Player import *
 from Algorithms import *
 from Boards import *
 
-players = [Bot("BLUE", algorithm=MCTS_TDUCT3(n=1000,e = 0.5)),Bot("RED", algorithm=MCTS_TDUCT3(n=1000,e = 0.5))]
+players = [Human("BLUE"),Bot("RED", algorithm=MCTS_UCT(n=1000,e = 0.5))]
 def get_states(data, moves):
     states = {}
     boards = []
