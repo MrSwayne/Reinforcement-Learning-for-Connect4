@@ -72,7 +72,7 @@ class IO:
                         continue
                     try:
                         data[tuple([int(row[0]), int(row[1]), int(row[2])])] = (
-                    int(row[3]), float(row[4]), int(row[5]))
+                    float(row[3]), float(row[4]), int(row[5]))
                     except Exception as e:
                         print(e)
                         print("error loading row: ", row)

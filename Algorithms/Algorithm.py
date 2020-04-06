@@ -57,8 +57,7 @@ class Tree:
             root.prev_action = state.last_action
             root.depth += 1
             root.parent.children.append(root)
-            if root.parent.visit_count == 0:
-                root.parent.visit_count = 1
+            root.parent.score += 0
         return root
 
 class Node:
@@ -94,7 +93,6 @@ class Node:
     @V.setter
     def V(self, value):
         self._V = value
-
         if self.learn:
             self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
@@ -105,17 +103,10 @@ class Node:
             if self.parent.best_child is None or self._V < self.parent.best_child.V:
                 self.parent.worst_child = self
 
-    @visit_count.setter
-    def visit_count(self, value):
-        self._visits = value
-
-        if self.learn:
-            self.data[self.get_state()] = (self.score, self.V, self.visit_count)
-
     @score.setter
     def score(self, value):
         self._score = value
-
+        self._visits += 1
         if self.learn:
             self.data[self.get_state()] = (self.score, self.V, self.visit_count)
 
@@ -137,6 +128,9 @@ class Node:
         self._V = 0.5
 
         self.total_actions = state.get_actions()
+
+#        if len(self.state.moves) == 1:
+ #           print(self.get_state())
 
         if self.get_state() in self.data:
             (self._score, self._V, self._visits) = self.data[self.get_state()]

@@ -32,18 +32,15 @@ class MCTS_TDUCT3(MCTS):
             cvc = child.visit_count
             cs = child.score
 
-            if self.max_explore:
-                score = -cvc
-
              #   logger.debug("Max exploration set. " + str(child.prev_action) + " " + str(score))
-            elif cvc == 0:
+            if cvc == 0:
                 score = float('inf')
             else:
                 #normalised_score = (child.V - node.best_child.V) / ((node.best_child.V - node.worst_child.V) + 1)
                # print(normalised_score)
               #  score = normalised_score + self.e * math.sqrt(math.log(pvc) / cvc)
 
-                score = child.V + (self.e * math.sqrt( math.log(pvc) / (cvc + 1)))
+                score = child.V + (self.e * math.sqrt( math.log(pvc + 1) / (cvc + 1)))
 
 
             if score > max_score:
@@ -93,12 +90,11 @@ class MCTS_TDUCT3(MCTS):
             if reward > 0:
                 node.score += 1
             reward *= -1
-            node.visit_count += 1
 
             if node.parent is not None:
 
                 target = -(self.reward(node.parent, node.parent.state) + self.gamma * node.V)
-                alpha = max(1 / (node.parent.visit_count), self.a)
+                alpha = max(1 / (node.parent.visit_count + 1), self.a)
 
                 node.parent.V = node.parent.V + alpha * (target - node.parent.V)
             node = node.parent

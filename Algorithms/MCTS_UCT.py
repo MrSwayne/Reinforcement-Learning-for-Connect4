@@ -81,13 +81,12 @@ class MCTS_UCT(MCTS):
     def backpropagate(self, node, reward, num_steps):
 
         while node is not None:
-
             if reward >= 1:
                 node.score += 1
             elif reward == 0:
                 node.score += 0.5
+            else:
+                node.score += 0
             reward *= -1
-
-            node.visit_count += 1
 
             node = node.parent
