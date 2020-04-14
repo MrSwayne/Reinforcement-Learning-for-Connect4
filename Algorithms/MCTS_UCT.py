@@ -88,5 +88,6 @@ class MCTS_UCT(MCTS):
             else:
                 node.score += 0
             reward *= -1
+            node.visit_count += 1
 
             node = node.parent

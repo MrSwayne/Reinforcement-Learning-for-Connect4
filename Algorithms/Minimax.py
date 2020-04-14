@@ -3,6 +3,7 @@ from threading import *
 from queue import Queue
 from Core import LOGGER
 from Algorithms.Algorithm import *
+import multiprocessing as mp
 
 logger = LOGGER.attach(__name__)
 
@@ -157,11 +158,32 @@ class AlphaBeta_V2(Algorithm):
         self.max_depth = max_depth
         self.scores = {}
         self.use_heuristic = use_heuristic
+        self.data = {}
+
+
+
         logger.debug("Depth: " + str(self.max_depth))
+
+    #Parallelised
+    def get_move_parallel(self, state):
+        pool = mp.Pool(mp.cpu_count())
+        return None
 
     def get_move(self, state):
         self.max = state.get_player_turn()
         self.min = state.get_player_turn(prev=True)
+
+        '''
+
+        if(mp.cpu_count() >= state.get_actions()):
+            states = []
+            for action in state.get_actions():
+
+            return self.get_move_parallel(state)
+
+        '''
+
+
 
         best_children = []
         best_score = float("-inf")
@@ -176,6 +198,7 @@ class AlphaBeta_V2(Algorithm):
                 best_score = score
             if score >= best_score:
                 best_children.append(action)
+
         logger.debug(str(state.get_player_turn()) + ": " + str(self.scores))
         return random.choice(best_children)
 
@@ -199,7 +222,13 @@ class AlphaBeta_V2(Algorithm):
                 _state = deepcopy(state)
                 _state.place(action)
 
-                val = max(val, self.alphabeta(_state, depth - 1, alpha, beta, False))
+            #    if (_state.get_state(), depth-1, False) not in self.data:
+                score = self.alphabeta(_state, depth - 1, alpha, beta, False)
+            #        self.data[(_state.get_state(), depth-1, False)] = score
+            #    else:
+            #        score = self.data[(_state.get_state(), depth-1, False)]
+
+                val = max(val, score)
                 alpha = max(alpha, val)
                 if alpha >= beta:
                     break
@@ -210,8 +239,14 @@ class AlphaBeta_V2(Algorithm):
                 _state = deepcopy(state)
                 _state.place(action)
 
-                old_val = val
-                val = min(val, self.alphabeta(_state, depth - 1, alpha, beta, True))
+             #   if (_state.get_state(), depth-1, True) not in self.data:
+                score = self.alphabeta(_state, depth - 1, alpha, beta, True)
+              #      self.data[(_state.get_state(), depth-1, True)] = score
+              #  else:
+               #     score = self.data[(_state.get_state(), depth-1, True)]
+
+
+                val = min(val, score)
                 beta = min(beta, val)
                 if alpha >= beta:
                     break

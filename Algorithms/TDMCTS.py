@@ -40,7 +40,7 @@ class MCTS_TDUCT3(MCTS):
                # print(normalised_score)
               #  score = normalised_score + self.e * math.sqrt(math.log(pvc) / cvc)
 
-                score = child.V + (self.e * math.sqrt( math.log(pvc + 1) / (cvc + 1)))
+                score = child.V + (self.e * math.sqrt( math.log(pvc) / (cvc)))
 
 
             if score > max_score:
@@ -78,6 +78,7 @@ class MCTS_TDUCT3(MCTS):
                     best_children.append(child)
         return random.choice(best_children)
 
+
     def backpropagate(self, node, reward, num_steps):
 
         reward *= (self.gamma ** (num_steps))
@@ -86,15 +87,14 @@ class MCTS_TDUCT3(MCTS):
         node.V = node.V + alpha * (reward - node.V)
 
         while node is not None:
-
             if reward > 0:
                 node.score += 1
             reward *= -1
-
+            node.visit_count += 1
             if node.parent is not None:
 
                 target = -(self.reward(node.parent, node.parent.state) + self.gamma * node.V)
-                alpha = max(1 / (node.parent.visit_count + 1), self.a)
+                alpha = max(1 / (node.parent.visit_count), self.a)
 
                 node.parent.V = node.parent.V + alpha * (target - node.parent.V)
             node = node.parent

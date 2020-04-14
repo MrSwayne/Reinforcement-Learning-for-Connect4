@@ -56,17 +56,26 @@ class MCTS_TDUCT(MCTS):
 
     def child_policy(self, node):
         highest_val = float("-inf")
-        best_child = None
 
-        for child in node.children:
+        best_children = []
 
-            if child.state.game_over:
-                return child
+        if self.max_explore:
+            min_visits = float("inf")
 
-            if child.V >= highest_val:
-                highest_val = child.V
-                best_child = child
-        return best_child
+            for child in node.children:
+                if child.visit_count < min_visits:
+                    min_visits = child.visit_count
+                    best_children = []
+                if child.visit_count <= min_visits:
+                    best_children.append(child)
+        else:
+            for child in node.children:
+                if child.V > highest_val:
+                    best_children = []
+                    highest_val = child.V
+                if child.V >= highest_val:
+                    best_children.append(child)
+        return random.choice(best_children)
 
     def backpropagate(self, node, reward, num_steps):
         reward *= (self.gamma ** (num_steps))
@@ -78,7 +87,7 @@ class MCTS_TDUCT(MCTS):
             if target >= 0:
                 node.score += 1
             node.visit_count += 1
-            alpha = max(1 / (1 + node.visit_count), 0.005)
+            alpha = max(1 / (1 + node.visit_count), self.a)
             node.V = node.V + alpha * target - node.V
             target *= -1
             node = node.parent

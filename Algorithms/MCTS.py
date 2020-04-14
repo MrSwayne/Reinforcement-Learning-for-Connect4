@@ -66,6 +66,8 @@ class MCTS(Algorithm):
         return self.data
 
     def load_memory(self):
+        self.root = None
+        self.data = None
         self.data = IO.load(self.memory)
 
     def save_memory(self, tag = ""):
