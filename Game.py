@@ -113,7 +113,7 @@ def simulation(board, players, num_episodes=10, table = {}, debug=False, max_exp
         while not state.game_over:
 
             if max_explore:
-                if len(state.moves) <= 1:
+                if len(state.moves) < 1:
                     explore = True
                 else:
                     explore = False

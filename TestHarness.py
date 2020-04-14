@@ -1,9 +1,16 @@
+from Core import LOGGER
+LOGGER.filename = "testHarness"
 from GUI import GameGUI as GUI
 from Player import *
 from Algorithms import *
 from Boards import *
+from matplotlib import colors as COLOURS
 
-players = [Human("BLUE"),Bot("RED", algorithm=MCTS_UCT(n=1000,e = 0.5))]
+
+import multiprocessing as mp
+
+
+players = [Bot("RED", algorithm=MCTS_UCT(n=500,e = 0.5, memory="hello/2_max_5000")), Human("BLUE")]
 def get_states(data, moves):
     states = {}
     boards = []
@@ -21,8 +28,8 @@ def get_states(data, moves):
 
 import Game
 
-
+import sys
+print(sys.maxsize)
 #ame.simulation(TicBoard, players, 10)
 board = ConnectBoard(players)
-
 GUI.play(board)

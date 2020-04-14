@@ -3,6 +3,7 @@ from Core.Logger import LOGGER
 import configparser
 
 
+import gc
 
 
 logger = LOGGER.attach(__name__)
@@ -57,12 +58,18 @@ elif mode == "SIMULATION":
 
         path = iter[0].algorithm.memory
         head, tail = os.path.split(path)
+
+
+
         for file in sorted(IO.list(head), key=len):
             if tail + "_" in file:
                 logger.info("found " + str(file))
                 f, ext = os.path.splitext(file)
                 iter[0].algorithm.memory = head + "/" + f
                 iter[0].algorithm.load_memory()
+                obj = gc.collect()
+                print(obj, " objects succesfully destroyed")
+                logger.debug(str(obj)+ " objects succesfully destroyed")
 
                 completed_games, winners, avg_states = Game.simulation(board, players, num_episodes=cfg["SIMULATION"].getint(
                     "episodes"), debug=False)
