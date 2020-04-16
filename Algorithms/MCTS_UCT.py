@@ -54,6 +54,11 @@ class MCTS_UCT(MCTS):
 
         return random.choice(best_children)
 
+    def tree_value(self, node):
+        if node.visit_count == 0:
+            return float("inf")
+        else:
+            return (node.score / node.visit_count) + (self.e + math.sqrt(2*math.log(node.parent.visit_count) / node.visit_count))
 
     def tree_policy(self, node):
         max_score = float('-inf')
@@ -61,14 +66,7 @@ class MCTS_UCT(MCTS):
         best_children = []
 
         for child in node.children:
-            pvc = node.visit_count
-            cvc = child.visit_count
-            cs = child.score
-
-            if cvc == 0:
-                score = float('inf')
-            else:
-                score = (cs / cvc) +  (self.e * math.sqrt(2 * math.log(pvc) / cvc))
+            score = self.tree_value(child)
 
             if score > max_score:
                 best_children = []

@@ -22,25 +22,24 @@ class MCTS_TDUCT3(MCTS):
         else:
             return self.MAX_REWARD
 
+
+    def tree_value(self, node):
+        if node.visit_count == 0:
+            return float("inf")
+        else:
+            return node.V + (self.e * math.sqrt(math.log(node.parent.visit_count) / node.visit_count))
     def tree_policy(self, node):
         max_score = float('-inf')
 
         best_children = []
 
         for child in node.children:
-            pvc = node.visit_count
-            cvc = child.visit_count
-            cs = child.score
-
              #   logger.debug("Max exploration set. " + str(child.prev_action) + " " + str(score))
-            if cvc == 0:
-                score = float('inf')
-            else:
                 #normalised_score = (child.V - node.best_child.V) / ((node.best_child.V - node.worst_child.V) + 1)
                # print(normalised_score)
               #  score = normalised_score + self.e * math.sqrt(math.log(pvc) / cvc)
 
-                score = child.V + (self.e * math.sqrt( math.log(pvc) / (cvc)))
+            score = self.tree_value(child)
 
 
             if score > max_score:
@@ -70,12 +69,17 @@ class MCTS_TDUCT3(MCTS):
                 if child.visit_count <= min_visits:
                     best_children.append(child)
         else:
-            for child in node.children:
+
+            return self.tree_policy(node)
+
+            #for child in node.children:
+            '''
                 if child.V > highest_val:
                     best_children = []
                     highest_val = child.V
                 if child.V >= highest_val:
                     best_children.append(child)
+            '''
         return random.choice(best_children)
 
 

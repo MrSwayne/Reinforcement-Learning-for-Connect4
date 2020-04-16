@@ -15,6 +15,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
     i = 0
     _p = None
 
+
     for p in players:
         if _p is None:
             _p = p
@@ -53,7 +54,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
 
             t0 = time.process_time()
             for p in tournament_players:
-                p.set_learning(False)
+                p.set_learning(True)
 
             logger.info("Tournament: " + str(players))
             completed_games, winners, avg_moves = simulation(board, tournament_players, tournament_games)
@@ -69,7 +70,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
             print()
             tournament_number += 1
             tournament_results.append((completed_games, winners, avg_moves))
-    except Exception as e :
+    except KeyboardInterrupt as e :
         print(e)
         logger.error(e)
     finally:

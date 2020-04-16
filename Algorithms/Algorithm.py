@@ -56,6 +56,8 @@ class Tree:
             root.parent = Node(parent=None, state=_state, player=_state.get_player_turn(), prev_action= -1, depth = 0, data=data, learn=learn)
             root.prev_action = state.last_action
             root.depth += 1
+            if root.parent.visit_count == 0:
+                root.parent.visit_count = 1
             root.parent.children.append(root)
         return root
 
@@ -93,6 +95,9 @@ class Node:
     def visit_count(self, value):
         self._visits = value
 
+        if self.learn:
+            self.data[self.get_state()] = (self.score, self.V, self.visit_count)
+
 
     @V.setter
     def V(self, value):
@@ -128,18 +133,18 @@ class Node:
 
         self.best_child = None
         self.worst_child = None
-        self._V = 0.5
+
 
         self.total_actions = state.get_actions()
 
         if(state.game_over):
             if(state.winner == 0):
-                self._V = 0.5
+                self._V = 0
             else:
                 self._V = 1.0
+        else:
+            self._V = 0.5
 
-#        if len(self.state.moves) == 1:
- #           print(self.get_state())
 
         if self.get_state() in self.data:
             (self._score, self._V, self._visits) = self.data[self.get_state()]

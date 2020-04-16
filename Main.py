@@ -67,9 +67,9 @@ elif mode == "SIMULATION":
                 f, ext = os.path.splitext(file)
                 iter[0].algorithm.memory = head + "/" + f
                 iter[0].algorithm.load_memory()
-                obj = gc.collect()
-                print(obj, " objects succesfully destroyed")
-                logger.debug(str(obj)+ " objects succesfully destroyed")
+                #obj = gc.collect()
+                #print(obj, " objects succesfully destroyed")
+                #logger.debug(str(obj)+ " objects succesfully destroyed")
 
                 completed_games, winners, avg_states = Game.simulation(board, players, num_episodes=cfg["SIMULATION"].getint(
                     "episodes"), debug=False)

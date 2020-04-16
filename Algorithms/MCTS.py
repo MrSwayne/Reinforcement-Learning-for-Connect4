@@ -139,7 +139,14 @@ class MCTS(Algorithm):
         best_child = self.child_policy(self.root)
 
 
-        logger.debug(str(self.root.player) + " : " + str(self.root.dump()) + " : " + str(best_child.prev_action))
+       # logger.debug(str(self.root.player) + " : " + str(self.root.dump()) + " : " + str(best_child.prev_action))
+
+        string  = str(self.root.player) + " " + str((self.root.score, round(self.root.V, 4), self.root.visit_count)) + "    "
+        for child in self.root.children:
+            string += str(child.prev_action) + "_" + str((child.score, round(child.V,4), child.visit_count)) + "_" + str(round(self.tree_value(child),4)) + " : "
+        string += str(best_child.prev_action)
+
+        logger.debug(string)
         self.root = best_child
 
         return best_child.prev_action
@@ -180,6 +187,10 @@ class MCTS(Algorithm):
 
     @abstractmethod
     def reward(self, node, state):
+        pass
+
+    @abstractmethod
+    def tree_value(self, node):
         pass
 
     @abstractmethod

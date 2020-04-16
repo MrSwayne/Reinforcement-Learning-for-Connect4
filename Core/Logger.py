@@ -35,5 +35,5 @@ class Logger:
         return logger
 
 #IO.verify(cfg["IO"]["log_path"])
-log_path = cfg["IO"]["log_path"] + cfg["LOGGING"].get("file_name", "log.out")
+log_path = cfg["IO"]["log_path"] + cfg["LOGGING"].get("file_name", "log") + "_" + cfg["GENERAL"]["MODE"][0]
 LOGGER = Logger(log_path)

@@ -159,32 +159,48 @@ class AlphaBeta_V2(Algorithm):
         self.scores = {}
         self.use_heuristic = use_heuristic
         self.data = {}
-
-
+        self.queue = Queue()
 
         logger.debug("Depth: " + str(self.max_depth))
 
     #Parallelised
     def get_move_parallel(self, state):
-        pool = mp.Pool(mp.cpu_count())
+
+
+
         return None
+
+    def add_to_queue(self, result):
+        print(result)
 
     def get_move(self, state):
         self.max = state.get_player_turn()
         self.min = state.get_player_turn(prev=True)
 
         '''
-
-        if(mp.cpu_count() >= state.get_actions()):
+        if(mp.cpu_count() >= len(state.get_actions())):
             states = []
+            pool = mp.Pool(mp.cpu_count())
+            processes = {}
             for action in state.get_actions():
+                _state = deepcopy(state)
+                _state.place(action)
 
-            return self.get_move_parallel(state)
+                p = mp.Process(target=self.alphabeta, args=(_state, self.max_depth, float("inf"), float("-inf"), False))
 
-        '''
+                processes[action] = p
+        
+            for action, process in processes.items():
+                process.start()
+                print("starting")
 
+            for action,process in processes.items():
+                print(action, " ", process.join())
+            
+            return processes[(0,1)]
 
-
+        else:
+'''
         best_children = []
         best_score = float("-inf")
         for action in state.get_actions():
