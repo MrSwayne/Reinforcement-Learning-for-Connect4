@@ -10,7 +10,7 @@ from matplotlib import colors as COLOURS
 import multiprocessing as mp
 
 
-players = [Bot("RED", algorithm=MCTS_UCT(n=500,e = 0.5, memory="hello/2_max_5000")), Human("BLUE")]
+players = [Human("YELLOW"), Human("BLUE")]
 def get_states(data, moves):
     states = {}
     boards = []

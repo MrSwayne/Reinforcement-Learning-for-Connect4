@@ -15,6 +15,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
     i = 0
     _p = None
 
+    enemy.set_learning(False)
 
     for p in players:
         if _p is None:
@@ -54,7 +55,7 @@ def experiment(board, players, enemy, episodes = 500, batch= 100, tournament_gam
 
             t0 = time.process_time()
             for p in tournament_players:
-                p.set_learning(True)
+                p.set_learning(False)
 
             logger.info("Tournament: " + str(players))
             completed_games, winners, avg_moves = simulation(board, tournament_players, tournament_games)

@@ -240,14 +240,14 @@ def play(board, simulation=False, W = 1280, H=720):
             else:
                 txt = str(winner) + " won!"
 
-            winner_text = font.render(txt, True, Player.colours["WHITE"])
+         #   winner_text = font.render(txt, True, Player.colours["WHITE"])
 
-            game_over_button = pygame.Rect(y_offset / 2, y_offset / 2, 120, 60)
-            pygame.draw.rect(screen, Player.colours["BLACK"], game_over_button)
+     #       game_over_button = pygame.Rect(x_offset / 2, y_offset / 2, 120, 60)
+      #      pygame.draw.rect(screen, Player.colours["BLACK"], game_over_button)
 
-            screen.blit(winner_text, (
-                game_over_button.centerx - game_over_button.width / 2 + 10,
-                game_over_button.centery - game_over_button.height / 2 + 5))
+          #  screen.blit(winner_text, (
+           #     game_over_button.centerx - game_over_button.width / 2 + 10,
+            #    game_over_button.centery - game_over_button.height / 2 + 5))
 
         else:
 
@@ -272,8 +272,8 @@ def play(board, simulation=False, W = 1280, H=720):
                             threads[player_turn] = None
 
 
-        clock_box = pygame.Rect(init_offset_x, init_offset_y - 25, 60, 20)
-        pygame.draw.rect(screen, Player.colours["AQUA"], clock_box)
+    #    clock_box = pygame.Rect(init_offset_x, init_offset_y - 25, 60, 20)
+     #   pygame.draw.rect(screen, Player.colours["AQUA"], clock_box)
 
 
        # t = time.clock() - t0
