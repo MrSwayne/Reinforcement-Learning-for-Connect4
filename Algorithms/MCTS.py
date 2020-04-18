@@ -1,8 +1,6 @@
 from Algorithms.Algorithm import *
 from Core.IO import IO
-from Core import LOGGER
 
-#logger = LOGGER.attach(__name__)
 class MCTS(Algorithm):
 
     def get_values(self):

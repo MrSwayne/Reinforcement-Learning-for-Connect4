@@ -83,6 +83,7 @@ class MCTS_TDUCT3(MCTS):
         return random.choice(best_children)
 
 
+
     def backpropagate(self, node, reward, num_steps):
 
         reward *= (self.gamma ** (num_steps))

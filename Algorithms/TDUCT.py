@@ -7,6 +7,7 @@ class MCTS_TDUCT(MCTS):
     def get_name(self):
         return "MCTS_TDUCT"
 
+
     def reward(self, node, state):
         if not state.game_over:
             return 0

@@ -145,7 +145,6 @@ class Node:
         else:
             self._V = 0.5
 
-
         if self.get_state() in self.data:
             (self._score, self._V, self._visits) = self.data[self.get_state()]
 
